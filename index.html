@@ -88,6 +88,12 @@ th{background:#020617}
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
+/* 🔊 DRIVER-ONLY DEPARTURE SOUND */
+const departSound = new Audio("Timetodepart.wav");
+let audioUnlocked = false;
+document.addEventListener("click",()=>audioUnlocked=true,{once:true});
+
+/* FIREBASE */
 firebase.initializeApp({
   apiKey:"AIzaSyAQ0dtJowQk2aPV_laJNJoUZFJQLxEr9u0",
   authDomain:"prta-dispatch.firebaseapp.com",
@@ -95,6 +101,7 @@ firebase.initializeApp({
 });
 const db=firebase.firestore();
 
+/* USERS */
 const users={
   dispatcher:{password:"admin",role:"dispatcher"},
   D01:{password:"DISP1",role:"dispatcher"},
@@ -107,11 +114,13 @@ const users={
 let currentUser={},currentBus="";
 let unsubBoard=null;
 
+/* UI */
 function show(id){
   document.querySelectorAll(".page").forEach(p=>p.style.display="none");
   document.getElementById(id).style.display="block";
 }
 
+/* LOGIN */
 function login(){
   const u=username.value.trim(),p=password.value.trim();
   if(!users[u]||users[u].password!==p){alert("Invalid login");return;}
@@ -128,6 +137,7 @@ function login(){
   if(currentUser.role==="supervisor"){show("supervisorPage");listenBoard("supervisorBoard");listenMessagesSup();}
 }
 
+/* LOGOUT */
 async function logout(){
   if(unsubBoard)unsubBoard();
   if(currentUser.role==="driver"){
@@ -140,12 +150,12 @@ async function logout(){
   show("loginPage");
 }
 
-/* SCHEDULES */
+/* SCHEDULE */
 async function createSchedule(){
   const points=schPoints.value.split("|").map(p=>{
     const a=p.trim().split(" ");
     const t=a.pop();
-    return{label:a.join(" "),time:t,arrived:false,delta:null,status:null};
+    return{label:a.join(" "),time:t,arrived:false,alerted:false,delta:null,status:null};
   });
   await db.collection("schedules")
     .doc(schDriver.value.trim())
@@ -161,7 +171,19 @@ function listenDriver(){
     .onSnapshot(snap=>{
       driverTable.innerHTML="<tr><th>Stop</th><th>Sched</th><th>Status</th></tr>";
       snap.forEach(doc=>{
-        doc.data().points.forEach((p,i)=>{
+        const trip=doc.data();
+        trip.points.forEach((p,i)=>{
+          const now=new Date();
+          const [h,m]=p.time.split(":").map(Number);
+          const sched=new Date();sched.setHours(h,m,0,0);
+
+          /* 🔔 PLAY SOUND WHEN TIME TO DEPART (DRIVER ONLY) */
+          if(!p.arrived && !p.alerted && now>=sched && audioUnlocked){
+            departSound.play().catch(()=>{});
+            p.alerted=true;
+            doc.ref.update({points:trip.points});
+          }
+
           const r=driverTable.insertRow();
           r.insertCell().innerText=p.label;
           r.insertCell().innerText=p.time;
@@ -252,5 +274,4 @@ function listenMessagesSup(){
 </script>
 </body>
 </html>
-
 
