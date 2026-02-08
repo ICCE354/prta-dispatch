@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PRTA Transit Operations System</title>
+<title>PRTA CAD / MDT System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body{margin:0;font-family:Arial;background:#020617;color:#e5e7eb}
@@ -16,7 +16,9 @@ button{background:#2563eb;font-weight:bold;cursor:pointer}
 table{width:100%;border-collapse:collapse;margin-top:10px}
 th,td{border:1px solid #1f2937;padding:6px;text-align:center}
 th{background:#020617}
-.late{background:#3f1d1d}
+.late{background:#7f1d1d}
+.early{background:#1e3a8a}
+.ontime{background:#064e3b}
 .msg{border:1px solid #1f2937;padding:6px;margin-bottom:5px}
 </style>
 </head>
@@ -28,8 +30,8 @@ th{background:#020617}
   <h1>PRTA Secure Login</h1>
   <select id="role">
     <option value="driver">Driver</option>
-    <option value="supervisor">Supervisor</option>
     <option value="dispatcher">Dispatcher</option>
+    <option value="supervisor">Supervisor</option>
   </select>
   <input id="username" placeholder="Username">
   <input id="password" type="password" placeholder="Password">
@@ -42,11 +44,16 @@ th{background:#020617}
 
 <!-- DRIVER -->
 <div id="driverPage" class="page">
-  <h1>🚍 Driver</h1>
+  <h1>🚍 Driver MDT</h1>
   <button onclick="logout()">Logout</button>
-  <h3>📨 Messages</h3>
-  <div id="driverMessages"></div>
   <table id="driverTable"></table>
+</div>
+
+<!-- DISPATCHER -->
+<div id="dispatcherPage" class="page">
+  <h1>🧑‍💻 Dispatcher</h1>
+  <button onclick="logout()">Logout</button>
+  <table id="boardDispatcher"></table>
 </div>
 
 <!-- SUPERVISOR -->
@@ -56,41 +63,19 @@ th{background:#020617}
   <table id="boardSupervisor"></table>
 </div>
 
-<!-- DISPATCHER -->
-<div id="dispatcherPage" class="page">
-  <h1>🧑‍💻 Dispatcher</h1>
-  <button onclick="logout()">Logout</button>
-
-  <h3>Schedule Builder</h3>
-  <input id="schDriver" placeholder="Driver Username">
-  <input id="schBus" placeholder="Bus ID">
-  <input id="schRoute" placeholder="Route">
-  <input id="schTime" placeholder="HH:MM">
-  <textarea id="schPoints" placeholder="Timepoints (use | , max 5)"></textarea>
-  <button onclick="createSchedule()">Assign Schedule</button>
-
-  <h3>📻 Dispatch Message</h3>
-  <input id="msgDriver" placeholder="Driver Username">
-  <textarea id="msgText" placeholder="Message"></textarea>
-  <button onclick="sendMessage()">Send Message</button>
-
-  <h3>Live Board</h3>
-  <table id="boardDispatcher"></table>
-</div>
-
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-/* FIREBASE CONFIG */
+/* 🔊 EMBEDDED DRIVER-ONLY AUDIO */
+const departSound = new Audio("data:audio/wav;base64,UklGRkbPAwBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAATElTVBoAAABJTkZPSVNGVA0AAABMYXZmNjEuMS4xMDAAAGRhdGEA" + 
+"{{TRUNCATED_FOR_READABILITY}}");
+
+/* FIREBASE */
 firebase.initializeApp({
   apiKey:"AIzaSyAQ0dtJowQk2aPV_laJNJoUZFJQLxEr9u0",
   authDomain:"prta-dispatch.firebaseapp.com",
-  projectId:"prta-dispatch",
-  storageBucket:"prta-dispatch.appspot.com",
-  messagingSenderId:"1023193983810",
-  appId:"1:1023193983810:web:b66f4b577f1e4c32a6fddb"
+  projectId:"prta-dispatch"
 });
 const db=firebase.firestore();
 
@@ -98,12 +83,12 @@ const db=firebase.firestore();
 const users={
   dispatcher:{password:"admin",role:"dispatcher"},
   U11:{password:"BIGT",role:"supervisor"},
-  "3675":{password:"SR",role:"driver"},
-  "3804":{password:"ER",role:"driver"}
+  "3675":{password:"SR",role:"driver"}
 };
 
-let currentUser={loggedIn:false,role:"",username:"",bus:""};
+let currentUser={};
 
+/* PAGE CONTROL */
 function show(p){
   document.querySelectorAll(".page").forEach(x=>x.style.display="none");
   document.getElementById(p).style.display="block";
@@ -115,27 +100,62 @@ async function login(){
   if(!users[username.value]||
      users[username.value].password!==password.value||
      users[username.value].role!==role.value){
-    alert("Invalid login");return;
+    alert("Invalid login"); return;
   }
 
   if(role.value==="driver"&&(!(pt1.checked&&pt2.checked&&pt3.checked)||!busInput.value)){
-    alert("Pre-trip required");return;
+    alert("Pre-trip required"); return;
   }
 
-  currentUser={loggedIn:true,role:role.value,username:username.value,bus:busInput.value};
+  currentUser={username:username.value,role:role.value};
 
-  if(role.value==="driver"){show("driverPage");loadDriver();loadDriverMessages();}
-  if(role.value==="dispatcher"){show("dispatcherPage");renderBoard("boardDispatcher");}
-  if(role.value==="supervisor"){show("supervisorPage");renderBoard("boardSupervisor");}
+  if(role.value==="driver"){show("driverPage"); loadDriver();}
+  if(role.value==="dispatcher"){show("dispatcherPage"); renderBoard("boardDispatcher");}
+  if(role.value==="supervisor"){show("supervisorPage"); renderBoard("boardSupervisor");}
 }
 
-/* 🔥 LOGOUT — DELETE ALL DRIVER TRIPS */
+/* LOGOUT — HARD CLEAR */
 async function logout(){
-  if(currentUser.loggedIn && currentUser.role==="driver"){
-    const d=currentUser.username;
-    const trips=await db.collection("schedules").doc(d).collection("trips").get();
-    for(const x of trips.docs){await x.ref.delete();}
-    await db.collection("schedules").doc(d).delete();
+  if(currentUser.role==="driver"){
+    const ref=db.collection("schedules").doc(currentUser.username).collection("trips");
+    const snap=await ref.get();
+    for(const d of snap.docs){await d.ref.delete();}
+    await db.collection("schedules").doc(currentUser.username).delete();
   }
-  currentUser={loggedIn:false,role:"",username:"",
+  currentUser={};
+  renderBoard("boardDispatcher");
+  renderBoard("boardSupervisor");
+  show("loginPage");
+}
+
+/* DRIVER LOAD */
+async function loadDriver(){
+  const t=document.getElementById("driverTable");
+  t.innerHTML="<tr><th>Stop</th><th>Sched</th><th>Status</th></tr>";
+  const s=await db.collection("schedules").doc(currentUser.username).collection("trips").get();
+
+  s.forEach(d=>{
+    const tr=d.data();
+    tr.points.forEach((p,i)=>{
+      const now=new Date();
+      const [h,m]=p.sched.split(":").map(Number);
+      const sched=new Date(); sched.setHours(h,m,0,0);
+
+      /* 🔊 DRIVER DEPARTURE SOUND */
+      if(!p.arrived && !p.alerted && now >= sched){
+        departSound.play();
+        p.alerted = true;
+        db.collection("schedules")
+          .doc(currentUser.username)
+          .collection("trips")
+          .doc(d.id)
+          .update({points:tr.points});
+      }
+
+      const r=t.insertRow();
+      r.insertCell().innerText=p.label;
+      r.insertCell().innerText=p.sched;
+      r.insertCell().innerHTML=p.arrived
+        ? `${p.arrivalStatus} (${p.delta}m)`
+        : `<button onclick="arrive('${d.id
 
