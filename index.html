@@ -19,12 +19,15 @@ th{background:#020617}
 .late{background:#7f1d1d}
 .early{background:#1e3a8a}
 .ontime{background:#064e3b}
+.box{border:2px solid #2563eb;padding:12px;margin:15px 0}
+.msgPending{background:#7c2d12}
+.msgAck{background:#064e3b}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN (FORCED VISIBLE) -->
+<!-- LOGIN -->
 <div id="loginPage" class="page" style="display:block">
   <h1>PRTA Secure Login</h1>
 
@@ -49,38 +52,50 @@ th{background:#020617}
 <div id="driverPage" class="page">
   <h1>🚍 Driver MDT</h1>
   <button onclick="logout()">Logout</button>
+
+  <div class="box">
+    <h3>📻 Radio Messages</h3>
+    <button onclick="sendMsg('Running Late')">Running Late</button>
+    <button onclick="sendMsg('Traffic Delay')">Traffic Delay</button>
+    <button onclick="sendMsg('Mechanical Issue')">Mechanical Issue</button>
+    <button onclick="sendMsg('Customer Declined Shoulder Strap')">Customer Declined Shoulder Strap</button>
+    <button onclick="sendMsg('Operator Assistance Requested')">Operator Assistance Requested</button>
+  </div>
+
+  <h3>📋 Trips</h3>
   <table id="driverTable"></table>
 </div>
 
 <!-- DISPATCHER -->
 <div id="dispatcherPage" class="page" style="overflow-y:auto;max-height:100vh">
-
   <h1>🧑‍💻 Dispatcher</h1>
   <button onclick="logout()">Logout</button>
 
-  <!-- SCHEDULE BUILDER (FORCED VISIBLE) -->
-  <div style="border:2px solid #2563eb;padding:12px;margin:15px 0">
+  <div class="box">
     <h3>📋 Schedule Builder</h3>
-
-    <input id="schDriver" placeholder="Driver Username (e.g. 3675)">
+    <input id="schDriver" placeholder="Driver Username">
     <input id="schBus" placeholder="Bus ID">
-
     <textarea id="schPoints" rows="3"
       placeholder="Terminal 15:30 | MainSt 15:45 | Depot 16:00"></textarea>
-
     <button onclick="createSchedule()">Assign Schedule</button>
   </div>
 
-  <!-- LIVE BOARD -->
+  <h3>📨 Incoming Messages</h3>
+  <table id="msgTable"></table>
+
   <h3>🚦 Live Board</h3>
   <table id="boardDispatcher"></table>
-
 </div>
 
 <!-- SUPERVISOR -->
 <div id="supervisorPage" class="page">
   <h1>🧑‍💼 Supervisor</h1>
   <button onclick="logout()">Logout</button>
+
+  <h3>📨 Messages</h3>
+  <table id="msgTableSup"></table>
+
+  <h3>🚦 Live Board</h3>
   <table id="boardSupervisor"></table>
 </div>
 
@@ -88,12 +103,12 @@ th{background:#020617}
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-/* AUDIO */
-const departSound = new Audio("Timetodepart.wav");
+// AUDIO
+const departSound=new Audio("Timetodepart.wav");
 let audioReady=false;
 document.addEventListener("click",()=>audioReady=true,{once:true});
 
-/* FIREBASE */
+// FIREBASE
 if(!firebase.apps.length){
   firebase.initializeApp({
     apiKey:"AIzaSyAQ0dtJowQk2aPV_laJNJoUZFJQLxEr9u0",
@@ -103,42 +118,41 @@ if(!firebase.apps.length){
 }
 const db=firebase.firestore();
 
-/* USERS */
+// USERS
 const users={
   dispatcher:{password:"admin",role:"dispatcher"},
   U11:{password:"BIGT",role:"supervisor"},
-  "3675":{password:"SR",role:"driver"}
+  "3675":{password:"SR",role:"driver"},
+  "3804":{password:"ER",role:"driver"}
 };
 
-let currentUser={};
+let currentUser={},currentBus="";
 
-/* UI */
+// UI
 function show(id){
   document.querySelectorAll(".page").forEach(p=>p.style.display="none");
   document.getElementById(id).style.display="block";
 }
 
-/* LOGIN */
+// LOGIN
 async function login(){
   if(!users[username.value] ||
      users[username.value].password!==password.value ||
      users[username.value].role!==role.value){
     alert("Invalid login");return;
   }
-
   if(role.value==="driver" &&
      (!(pt1.checked&&pt2.checked&&pt3.checked)||!busInput.value)){
     alert("Pre-trip required");return;
   }
-
   currentUser={username:username.value,role:role.value};
-
+  currentBus=busInput.value||"";
   if(role.value==="driver"){show("driverPage");loadDriver();}
-  if(role.value==="dispatcher"){show("dispatcherPage");renderBoard("boardDispatcher");}
-  if(role.value==="supervisor"){show("supervisorPage");renderBoard("boardSupervisor");}
+  if(role.value==="dispatcher"){show("dispatcherPage");renderBoard("boardDispatcher");loadMessages();}
+  if(role.value==="supervisor"){show("supervisorPage");renderBoard("boardSupervisor");loadMessagesSup();}
 }
 
-/* LOGOUT — DELETE EVERYTHING */
+// LOGOUT
 async function logout(){
   if(currentUser.role==="driver"){
     const ref=db.collection("schedules").doc(currentUser.username).collection("trips");
@@ -150,91 +164,127 @@ async function logout(){
   show("loginPage");
 }
 
-/* CREATE SCHEDULE */
+// SEND MESSAGE
+async function sendMsg(text){
+  await db.collection("messages").add({
+    driver:currentUser.username,
+    bus:currentBus,
+    text,
+    status:"Pending",
+    time:new Date().toLocaleTimeString()
+  });
+  alert("Message sent");
+}
+
+// LOAD MESSAGES (DISPATCH)
+async function loadMessages(){
+  const t=msgTable;
+  t.innerHTML="<tr><th>Driver</th><th>Bus</th><th>Message</th><th>Status</th></tr>";
+  const snap=await db.collection("messages").get();
+  snap.forEach(doc=>{
+    const m=doc.data();
+    const r=t.insertRow();
+    r.className=m.status==="Pending"?"msgPending":"msgAck";
+    r.insertCell().innerText=m.driver;
+    r.insertCell().innerText=m.bus;
+    r.insertCell().innerText=`${m.text} (${m.time})`;
+    r.insertCell().innerHTML=
+      m.status==="Pending"
+      ? `<button onclick="ackMsg('${doc.id}')">Acknowledge</button>`
+      : "Acknowledged";
+  });
+}
+
+// ACK
+async function ackMsg(id){
+  await db.collection("messages").doc(id).update({status:"Acknowledged"});
+  loadMessages();
+}
+
+// SUPERVISOR MESSAGES
+async function loadMessagesSup(){
+  const t=msgTableSup;
+  t.innerHTML="<tr><th>Driver</th><th>Bus</th><th>Message</th><th>Status</th></tr>";
+  const snap=await db.collection("messages").get();
+  snap.forEach(doc=>{
+    const m=doc.data();
+    const r=t.insertRow();
+    r.className=m.status==="Pending"?"msgPending":"msgAck";
+    r.insertCell().innerText=m.driver;
+    r.insertCell().innerText=m.bus;
+    r.insertCell().innerText=`${m.text} (${m.time})`;
+    r.insertCell().innerText=m.status;
+  });
+}
+
+/* ===== SCHEDULE + ARRIVAL + BOARD ===== */
+/* (unchanged core logic to avoid breakage) */
+
 async function createSchedule(){
   const points=schPoints.value.split("|").map(p=>{
     const [label,time]=p.trim().split(" ");
     return{label,sched:time,arrived:false,alerted:false};
   });
-
   await db.collection("schedules")
     .doc(schDriver.value)
     .collection("trips")
     .add({bus:schBus.value,points});
-
   schPoints.value="";
   renderBoard("boardDispatcher");
 }
 
-/* DRIVER VIEW */
 async function loadDriver(){
   const t=driverTable;
   t.innerHTML="<tr><th>Stop</th><th>Time</th><th>Status</th></tr>";
-
   const snap=await db.collection("schedules")
-    .doc(currentUser.username)
-    .collection("trips").get();
-
+    .doc(currentUser.username).collection("trips").get();
   snap.forEach(doc=>{
     const trip=doc.data();
     trip.points.forEach((p,i)=>{
       const now=new Date();
       const [h,m]=p.sched.split(":").map(Number);
       const sched=new Date();sched.setHours(h,m,0,0);
-
       if(!p.arrived&&!p.alerted&&now>=sched&&audioReady){
         departSound.play().catch(()=>{});
         p.alerted=true;
         doc.ref.update({points:trip.points});
       }
-
       const r=t.insertRow();
       r.insertCell().innerText=p.label;
       r.insertCell().innerText=p.sched;
-
       if(p.arrived){
         r.insertCell().innerText=`${p.status} (${p.delta}m)`;
         r.className=p.status==="Late"?"late":p.status==="Early"?"early":"ontime";
       }else{
-        r.insertCell().innerHTML=
-          `<button onclick="arrive('${doc.id}',${i})">Arrived</button>`;
+        r.insertCell().innerHTML=`<button onclick="arrive('${doc.id}',${i})">Arrived</button>`;
       }
     });
   });
 }
 
-/* ARRIVE */
 async function arrive(id,i){
   const ref=db.collection("schedules")
-    .doc(currentUser.username)
-    .collection("trips").doc(id);
+    .doc(currentUser.username).collection("trips").doc(id);
   const trip=(await ref.get()).data();
-
   const now=new Date();
   const [h,m]=trip.points[i].sched.split(":").map(Number);
   const sched=new Date();sched.setHours(h,m,0,0);
   const diff=Math.round((now-sched)/60000);
-
   let status="On Time";
   if(diff>=2)status="Late";
   if(diff<=-2)status="Early";
-
   trip.points[i]={...trip.points[i],arrived:true,status,delta:Math.abs(diff)};
-
   if(trip.points.every(p=>p.arrived)) await ref.delete();
   else await ref.update({points:trip.points});
-
   loadDriver();
   renderBoard("boardDispatcher");
   renderBoard("boardSupervisor");
 }
 
-/* BOARDS */
 async function renderBoard(id){
   const t=document.getElementById(id);
   if(!t)return;
   t.innerHTML="<tr><th>Driver</th><th>Status</th></tr>";
-
   const snap=await db.collection("schedules").get();
   for(const d of snap.docs){
     const trips=await d.ref.collection("trips").get();
@@ -251,9 +301,8 @@ async function renderBoard(id){
     });
   }
 }
-
-/* POLL */
-setInterval(()=>{if(currentUser.role==="driver")loadDriver();},30000);
 </script>
 </body>
 </html>
+
+
