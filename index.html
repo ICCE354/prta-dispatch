@@ -135,7 +135,19 @@ async function login(){
   if(role.value==="supervisor"){show("supervisorPage");renderBoard("boardSupervisor");}
   if(role.value==="dispatcher"){show("dispatcherPage");renderBoard("boardDispatcher");}
 }
-function logout(){ currentUser={loggedIn:false}; show("loginPage"); }
+
+/* 🔥 LOGOUT — DELETE ALL DRIVER TRIPS */
+async function logout(){
+  if(currentUser.loggedIn && currentUser.role==="driver"){
+    const ref=db.collection("schedules").doc(currentUser.username).collection("trips");
+    const snap=await ref.get();
+    for(const d of snap.docs){
+      await ref.doc(d.id).delete();
+    }
+  }
+  currentUser={loggedIn:false,role:"",username:"",bus:""};
+  show("loginPage");
+}
 
 /* FIRESTORE HELPERS */
 async function saveSchedule(driver,trip){
@@ -186,6 +198,7 @@ async function arrive(id,i){
 }
 async function endTrip(id){
   await db.collection("schedules").doc(currentUser.username).collection("trips").doc(id).update({status:"Completed"});
+  alert("Trip ended");
   loadDriver(); renderBoard("boardDispatcher"); renderBoard("boardSupervisor");
 }
 
@@ -230,6 +243,16 @@ async function ackMessage(id){
   await db.collection("messages").doc(currentUser.username).collection("inbox").doc(id).update({read:true});
   loadDriverMessages();
 }
+
+/* REAL-TIME LATE REFRESH */
+setInterval(()=>{
+  if(!currentUser.loggedIn) return;
+  if(currentUser.role==="driver") loadDriver();
+  if(currentUser.role==="dispatcher") renderBoard("boardDispatcher");
+  if(currentUser.role==="supervisor") renderBoard("boardSupervisor");
+},30000);
 </script>
+
 </body>
 </html>
+
