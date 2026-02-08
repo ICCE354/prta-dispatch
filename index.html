@@ -1,397 +1,248 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>PRTA Transit CAD / AVL System</title>
+<meta charset="UTF-8">
+<title>PRTA Transit Operations System (Fictional)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
-body{font-family:Arial;background:#020617;color:#e5e7eb;margin:0}
-.hidden{display:none}
-header{background:#020617;padding:10px;font-size:18px;font-weight:bold;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1f2937}
-.container{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;padding:10px}
-.card{background:#020617;padding:10px;border-radius:12px;border:1px solid #1f2937}
-button{padding:7px 10px;border:none;border-radius:6px;background:#2563eb;color:white;cursor:pointer;font-weight:bold;margin:2px}
-button.warn{background:#f59e0b}
-button.danger{background:#ef4444}
-input,select{padding:6px;border-radius:6px;border:1px solid #1f2937;background:#020617;color:#e5e7eb;width:100%}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th,td{border:1px solid #1f2937;padding:5px;text-align:center}
-th{background:#020617}
-.status-on{color:#22c55e;font-weight:bold}
-.status-warn{color:#f59e0b;font-weight:bold}
-.status-late{color:#ef4444;font-weight:bold}
-.alert{color:#ef4444;font-weight:bold}
-#map{height:180px;border:1px dashed #1f2937;border-radius:10px;position:relative}
-.bus{position:absolute;background:#22c55e;color:black;padding:2px 6px;border-radius:6px;font-size:11px}
-#radioLog,#cadLog,#activityBox{height:120px;overflow:auto;border:1px solid #1f2937;padding:6px;font-size:11px}
-.mobileOnly{display:none}
-@media(max-width:700px){.desktopOnly{display:none}.mobileOnly{display:block}}
+body {
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#020617;
+  color:#e5e7eb;
+}
+.page { display:none; padding:20px; }
+h1 { margin-top:0; }
+input, select, textarea, button {
+  width:100%;
+  padding:8px;
+  margin:5px 0;
+  background:#020617;
+  color:#e5e7eb;
+  border:1px solid #1f2937;
+  border-radius:6px;
+}
+button {
+  background:#2563eb;
+  cursor:pointer;
+  font-weight:bold;
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+th, td {
+  border:1px solid #1f2937;
+  padding:6px;
+  text-align:center;
+}
+th { background:#020617; }
 </style>
 </head>
+
 <body>
 
-<!-- LOGIN -->
-<div id="login" class="container">
-<div class="card">
-<h3>PRTA Secure Login</h3>
-<select id="role"><option value="driver">Driver</option><option value="supervisor">Supervisor</option><option value="dispatcher">Dispatcher</option></select><br><br>
-<input id="user" placeholder="Username"><br><br>
-<input id="pass" placeholder="Password" type="password"><br><br>
-<input id="busAssign" placeholder="Bus ID (drivers enter any bus)"><br><br>
-<label><input type="checkbox" id="pt1"> Brakes OK</label><br>
-<label><input type="checkbox" id="pt2"> Doors OK</label><br>
-<label><input type="checkbox" id="pt3"> Lights OK</label><br><br>
-<button onclick="login()">Login</button>
-</div>
+<!-- ================= LOGIN PAGE ================= -->
+<div id="loginPage" class="page">
+  <h1>PRTA Secure Login</h1>
+
+  <select id="role">
+    <option value="driver">Driver</option>
+    <option value="supervisor">Supervisor</option>
+    <option value="dispatcher">Dispatcher</option>
+  </select>
+
+  <input id="username" placeholder="Username">
+  <input id="password" placeholder="Password" type="password">
+  <input id="busInput" placeholder="Bus ID (drivers only)">
+
+  <label><input type="checkbox" id="pt1"> Brakes OK</label><br>
+  <label><input type="checkbox" id="pt2"> Doors OK</label><br>
+  <label><input type="checkbox" id="pt3"> Lights OK</label><br><br>
+
+  <button onclick="login()">Login</button>
 </div>
 
-<!-- DRIVER DASHBOARD -->
-<div id="driverDash" class="hidden">
-<header><span>Driver Dashboard</span><span id="driverClock"></span></header>
-<div class="container">
-<div class="card">
-<h4>Your Assigned Schedule</h4>
-<table id="driverSchedule">
-<tr><th>Bus</th><th>Route</th><th>Departure</th><th>Status</th></tr>
-</table>
-</div>
-<div class="card">
-<h4>Live Status</h4>
-<div id="onTimeBox">🟢 You are ON TIME</div>
-<button class="warn" onclick="markLate()">Report Delay</button>
-</div>
-</div>
+<!-- ================= DRIVER PAGE ================= -->
+<div id="driverPage" class="page">
+  <h1>🚍 Driver Dashboard</h1>
+  <button onclick="logout()">Logout</button>
+  <table id="driverTable"></table>
 </div>
 
-<!-- DISPATCHER SCHEDULING -->
-<div id="dispatchSchedule" class="card desktopOnly">
-<h4>Schedule Builder (Dispatcher)</h4>
-<input id="schDriver" placeholder="Driver Username">
-<input id="schBus" placeholder="Bus ID">
-<input id="schRoute" placeholder="Route">
-<input id="schTime" placeholder="Departure Time (HH:MM)">
-<textarea id="schPoints" placeholder="Timepoints (one per line)
-Downtown – 08:00
-Central Station – 08:15
-Airport – 08:35"></textarea>
-<button onclick="createSchedule()">Assign Schedule</button>
-<div id="scheduleLog"></div>
+<!-- ================= SUPERVISOR PAGE ================= -->
+<div id="supervisorPage" class="page">
+  <h1>🧑‍💼 Supervisor Control</h1>
+  <button onclick="logout()">Logout</button>
+  <table id="boardSupervisor"></table>
 </div>
 
-<!-- DISPATCHER SCHEDULING -->
-<div class="card desktopOnly">
-<h4>Live Schedule Board</h4>
-<table id="board"><tr><th>Driver</th><th>Bus</th><th>Route</th><th>Time</th><th>Status</th><th>Approved</th></tr></table>
-</div>
-<!-- DISPATCHER SCHEDULING -->
-<div id="dispatchSchedule" class="card desktopOnly">
-<h4>Schedule Builder (Dispatcher)</h4>
-<input id="schDriver" placeholder="Driver Username">
-<input id="schBus" placeholder="Bus ID">
-<input id="schRoute" placeholder="Route">
-<input id="schTime" placeholder="Departure Time">
-<button onclick="createSchedule()">Assign Schedule</button>
-<div id="scheduleLog"></div>
+<!-- ================= DISPATCHER PAGE ================= -->
+<div id="dispatcherPage" class="page">
+  <h1>🧑‍💻 Dispatcher Operations</h1>
+  <button onclick="logout()">Logout</button>
+
+  <h3>Schedule Builder</h3>
+  <input id="schDriver" placeholder="Driver Username">
+  <input id="schBus" placeholder="Bus ID">
+  <input id="schRoute" placeholder="Route">
+  <input id="schTime" placeholder="Departure Time (HH:MM)">
+  <textarea id="schPoints" placeholder="Up to 5 timepoints per line, use |"></textarea>
+  <button onclick="createSchedule()">Assign Schedule</button>
+
+  <h3>Live Schedule Board</h3>
+  <table id="boardDispatcher"></table>
 </div>
 
-<!-- SYSTEM -->
-<div id="driverDash" class="hidden">
-<header><span>Driver Dashboard</span><span id="driverClock"></span></header>
-<div class="container">
-<div class="card">
-<h4>Your Assigned Schedule</h4>
-<table>
-<tr><th>Bus</th><th>Route</th><th>Departure</th><th>Status</th></tr>
-<tr>
-<td id="dBus"></td>
-<td id="dRoute">Route 5</td>
-<td id="dTime">08:00</td>
-<td id="dStatus" class="status-on">On Time</td>
-</tr>
-</table>
-</div>
-<div class="card">
-<h4>Live Status</h4>
-<div id="onTimeBox">🟢 You are ON TIME</div>
-<button class="warn" onclick="markLate()">Report Delay</button>
-</div>
-</div>
-</div>
-
-<!-- SYSTEM -->
-<div id="system" class="hidden">
-<header>
-<span>PRTA CAD / AVL Control System (Fictional)</span>
-<span id="clock"></span>
-</header>
-
-<div class="container">
-
-<div class="card">
-<h4>Shift Control</h4>
-<button onclick="signIn()">Sign In</button>
-<button onclick="signOut()">Sign Out</button>
-<div id="shiftStatus">OFF DUTY</div>
-</div>
-
-<div class="card desktopOnly">
-<h4>CAD Incidents</h4>
-<select id="incidentType"><option>Bus Breakdown</option><option>Traffic Delay</option><option>Passenger Issue</option></select>
-<input id="incidentBus" placeholder="Bus ID">
-<button class="danger" onclick="addIncident()">Assign Incident</button>
-<div id="cadLog"></div>
-</div>
-
-<div class="card">
-<h4>Headway Monitoring</h4>
-<input id="headway" placeholder="Scheduled headway (min)">
-<button onclick="checkHeadway()">Check</button>
-<div id="headwayStatus"></div>
-</div>
-
-<div class="card">
-<h4>Farebox Report</h4>
-<button onclick="generateFare()">Generate</button>
-<div id="fareReport"></div>
-</div>
-
-<div class="card">
-<h4>Dispatch Radio</h4>
-<div id="radioLog"></div>
-<input id="radioMsg" placeholder="Radio message">
-<button onclick="sendRadio()">Send</button>
-</div>
-
-<div class="card">
-<h4>Live Map</h4>
-<div id="map"></div>
-<button onclick="spawnBus()">Spawn Bus</button>
-</div>
-
-<div class="card desktopOnly">
-<h4>Account Management (Dispatcher)</h4>
-<input id="newUser" placeholder="Username">
-<input id="newPass" placeholder="Password">
-<select id="newRole"><option value="driver">Driver</option><option value="supervisor">Supervisor</option><option value="dispatcher">Dispatcher</option></select>
-<button onclick="addAccount()">Add / Update Account</button>
-</div>
-
-<div class="card">
-<h4>Self Service</h4>
-<input id="oldPass" placeholder="Old Password" type="password">
-<input id="newPassSelf" placeholder="New Password" type="password">
-<button onclick="changePassword()">Change Password</button>
-<input id="newBus" placeholder="Change Bus (mid-shift)">
-<button class="warn" onclick="changeBus()">Change Bus</button>
-</div>
-
-<div class="card">
-<h4>Activity Logs</h4>
-<button onclick="exportLogs()">Export Logs (CSV)</button>
-<div id="activityBox"></div>
-</div>
-
-</div>
-</div>
+<!-- ================= FIREBASE SDKs ================= -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-// ====== DATA ======
-let schedules = JSON.parse(localStorage.getItem('schedules')) || {}; // {driver:[{bus,route,time,status,accepted,completed,approved}]}
-let users = JSON.parse(localStorage.getItem('users')) || {
-  dispatcher:{password:'admin',role:'dispatcher'},
-  supervisor:{password:'sup',role:'supervisor'},
-  "U11":{password:'BIGT',role:'supervisor'},
-  "3675":{password:'SR',role:'driver'},
-  "3804":{password:'ER',role:'driver'}
+/* ================= FIREBASE CONFIG ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyAQ0dtJowQk2aPV_laJNJoUZFJQLxEr9u0",
+  authDomain: "prta-dispatch.firebaseapp.com",
+  projectId: "prta-dispatch",
+  storageBucket: "prta-dispatch.appspot.com",
+  messagingSenderId: "1023193983810",
+  appId: "1:1023193983810:web:b66f4b577f1e4c32a6fddb"
 };
-let role='',assignedBus='',signedIn=false,user='';
-let activityLog = JSON.parse(localStorage.getItem('activityLog')) || [];
 
-// ====== LOGIN ======
-function login(){
-  let r=document.getElementById('role').value;
-  user=document.getElementById('user').value;
-  let p=document.getElementById('pass').value;
-  let bus=document.getElementById('busAssign').value;
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-  if(r==='driver'){
-    if(!(pt1.checked&&pt2.checked&&pt3.checked)){alert('Pre-trip checklist required');return;}
-    if(!bus){alert('Enter bus number');return;}
+/* ================= USERS ================= */
+const users = {
+  dispatcher: { password:"admin", role:"dispatcher" },
+  U11: { password:"BIGT", role:"supervisor" },
+  "3675": { password:"SR", role:"driver" },
+  "3804": { password:"ER", role:"driver" }
+};
+
+let currentUser = { loggedIn:false, role:"", username:"", bus:"" };
+
+/* ================= PAGE CONTROL ================= */
+function hideAllPages(){
+  document.querySelectorAll(".page").forEach(p => p.style.display="none");
+}
+function show(p){ hideAllPages(); document.getElementById(p).style.display="block"; }
+window.onload = () => show("loginPage");
+
+/* ================= LOGIN ================= */
+async function login(){
+  if(!users[username.value] || users[username.value].password !== password.value || users[username.value].role !== role.value){
+    alert("Invalid login"); return;
   }
-  if(!users[user]||users[user].password!==p||users[user].role!==r){alert('Invalid login');return;}
-  role=r; assignedBus = r==='driver'?bus:'';
-  document.getElementById('login').classList.add('hidden');
-
-  if(role==='driver'){
-    document.getElementById('driverDash').classList.remove('hidden');
-    loadDriverSchedule();
-  } else {
-    document.getElementById('system').classList.remove('hidden');
+  if(role.value === "driver" && (!(pt1.checked && pt2.checked && pt3.checked) || !busInput.value)){
+    alert("Pre-trip and bus required"); return;
   }
 
-  logActivity(`${role} ${user} logged in${assignedBus?(' (Bus '+assignedBus+')'):''}`);
-}(`${role} ${user} logged in${assignedBus?(' (Bus '+assignedBus+')'):''}`);
+  currentUser = {
+    loggedIn:true,
+    role:role.value,
+    username:username.value,
+    bus:busInput.value
+  };
+
+  if(role.value==="driver"){ show("driverPage"); loadDriver(); }
+  if(role.value==="supervisor"){ show("supervisorPage"); renderBoard("boardSupervisor"); }
+  if(role.value==="dispatcher"){ show("dispatcherPage"); renderBoard("boardDispatcher"); }
 }
 
-setInterval(()=>{
- document.getElementById('clock') && (document.getElementById('clock').innerText=new Date().toLocaleTimeString());
- document.getElementById('driverClock') && (document.getElementById('driverClock').innerText=new Date().toLocaleTimeString());
-},1000);
-
-function acceptTrip(i){schedules[user][i].accepted=true;schedules[user][i].status='On Time';saveSchedules();logActivity('Trip accepted');loadDriverSchedule();}
-function endTrip(i){schedules[user][i].completed=true;schedules[user][i].status='Completed';saveSchedules();logActivity('Trip completed');loadDriverSchedule();}
-function saveSchedules(){localStorage.setItem('schedules',JSON.stringify(schedules));}
-function arrivePoint(tripIdx, pointIdx){
-  schedules[user][tripIdx].timepoints[pointIdx].arrived = true;
-  saveSchedules();
-  logActivity(`Arrived at timepoint: ${schedules[user][tripIdx].timepoints[pointIdx].label}`);
-  loadDriverSchedule();
+/* ================= LOGOUT ================= */
+function logout(){
+  currentUser = { loggedIn:false, role:"", username:"", bus:"" };
+  show("loginPage");
 }
 
-function autoLateCheck(){let now=new Date();(schedules[user]||[]).forEach(s=>{let [h,m]=s.time.split(':');let dep=new Date();dep.setHours(h,m,0);if(!s.completed && s.accepted && now>dep && s.status!=='Late'){s.status='Late';logActivity('Auto late detected');}});saveSchedules();}
-(){
- document.getElementById('dStatus').innerText='Late';
- document.getElementById('dStatus').className='status-late';
- document.getElementById('onTimeBox').innerText='🔴 You are LATE';
- logActivity('Driver marked late');
+/* ================= FIRESTORE HELPERS ================= */
+async function saveSchedule(driver, trip){
+  await db.collection("schedules").doc(driver).collection("trips").add(trip);
+}
+async function loadDriverSchedules(driver){
+  const snap = await db.collection("schedules").doc(driver).collection("trips").get();
+  return snap.docs.map(d => ({ id:d.id, ...d.data() }));
+}
+async function loadAllSchedules(){
+  const all=[];
+  const drivers=await db.collection("schedules").get();
+  for(const d of drivers.docs){
+    const trips=await d.ref.collection("trips").get();
+    trips.forEach(t => all.push({ driver:d.id, id:t.id, ...t.data() }));
+  }
+  return all;
 }
 
-// original clock
-setInterval(()=>{document.getElementById('clock').innerText=new Date().toLocaleTimeString();},1000);
+/* ================= DISPATCHER ================= */
+async function createSchedule(){
+  const points = schPoints.value.split("\n").flatMap(l =>
+    l.split("|").slice(0,5).map(p => ({ label:p.trim(), arrived:false }))
+  );
 
-// ====== SHIFT ======
-function signIn(){signedIn=true;document.getElementById('shiftStatus').innerText='ON DUTY';logActivity('Signed in');}
-function signOut(){signedIn=false;document.getElementById('shiftStatus').innerText='OFF DUTY';logActivity('Signed out');}
-
-// ====== CAD ======
-function addIncident(){
-  if(role==='driver'){alert('Not permitted');return;}
-  let t=incidentType.value; let b=incidentBus.value||'Unknown';
-  cadLog.innerHTML+=`<div class='alert'>[${new Date().toLocaleTimeString()}] ${t} – Bus ${b}</div>`;
-  new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
-  logActivity(`Incident assigned: ${t} Bus ${b}`);
-}
-
-// ====== HEADWAY ======
-function checkHeadway(){
-  let sched=parseInt(headway.value||0); let actual=Math.floor(Math.random()*25);
-  let s=document.getElementById('headwayStatus');
-  if(actual<=sched){s.innerHTML=`<span class='status-on'>On target: ${actual} min</span>`;}
-  else if(actual<=sched+5){s.innerHTML=`<span class='status-warn'>Warning: ${actual} min</span>`;}
-  else{s.innerHTML=`<span class='status-late'>Critical: ${actual} min</span>`;}
-  logActivity(`Headway checked: actual ${actual} / scheduled ${sched}`);
-}
-
-// ====== FARE ======
-function generateFare(){let riders=Math.floor(Math.random()*200);let rev=(riders*2.5).toFixed(2);fareReport.innerText=`Passengers ${riders} | Revenue $${rev}`;logActivity('Farebox report generated');}
-
-// ====== RADIO ======
-function sendRadio(){radioLog.innerHTML+=`<div>[${new Date().toLocaleTimeString()}] ${radioMsg.value}</div>`;logActivity('Radio message sent');}
-
-// ====== MAP ======
-function spawnBus(){let b=document.createElement('div');b.className='bus';b.innerText='BUS';let x=0,y=Math.random()*140;map.appendChild(b);let i=setInterval(()=>{x+=2;b.style.left=x+'px';b.style.top=y+'px';if(x>260)clearInterval(i);},80);}
-
-// ====== ACCOUNTS ======
-function createSchedule(){
-  if(role!=='dispatcher'){alert('Dispatcher only');return;}
-  let d=schDriver.value;
-  if(!schedules[d]) schedules[d]=[];
-  let points = schPoints.value.split('
-').filter(p=>p.trim()!=='');
-  schedules[d].push({
+  await saveSchedule(schDriver.value,{
     bus:schBus.value,
     route:schRoute.value,
     time:schTime.value,
-    status:'Scheduled',
-    accepted:false,
-    completed:false,
-    approved:false,
-    timepoints: points.map(p=>({label:p, arrived:false}))
+    status:"On Time",
+    points
   });
-  localStorage.setItem('schedules',JSON.stringify(schedules));
-  scheduleLog.innerText=`Assigned trip to ${d}`;
-  logActivity(`Trip created for ${d}`);
-  renderBoard();
-}(){
-  if(role!=='dispatcher'){alert('Dispatcher only');return;}
-  let d=schDriver.value;
-  schedules[d]={bus:schBus.value,route:schRoute.value,time:schTime.value,status:'On Time'};
-  localStorage.setItem('schedules',JSON.stringify(schedules));
-  scheduleLog.innerText=`Assigned ${d} → Route ${schRoute.value} at ${schTime.value}`;
-  logActivity(`Schedule assigned to ${d}`);
+  renderBoard("boardDispatcher");
 }
 
-function loadDriverSchedule(){
-  let tbl=document.getElementById('driverSchedule');
-  tbl.innerHTML='<tr><th>Bus</th><th>Route</th><th>Departure</th><th>Status</th><th>Timepoints</th><th>Action</th></tr>';
-  (schedules[user]||[]).forEach((s,i)=>{
-    let r=tbl.insertRow();
-    r.insertCell(0).innerText=s.bus;
-    r.insertCell(1).innerText=s.route;
-    r.insertCell(2).innerText=s.time;
-    let st=r.insertCell(3);st.innerText=s.status;
-    let tp=r.insertCell(4);
-    tp.innerHTML = s.timepoints.map((t,idx)=>`${t.arrived?'🟢':'⚪'} ${t.label} <button onclick=\"arrivePoint(${i},${idx})\">Arrived</button>`).join('<br>');(t=>`• ${t}`).join('<br>');
-    let act=r.insertCell(5);
-    if(!s.accepted){let b=document.createElement('button');b.innerText='Accept';b.onclick=()=>acceptTrip(i);act.appendChild(b);} 
-    else if(!s.completed){let b=document.createElement('button');b.innerText='End Trip';b.onclick=()=>endTrip(i);act.appendChild(b);} 
+/* ================= DRIVER ================= */
+async function loadDriver(){
+  const t=document.getElementById("driverTable");
+  t.innerHTML="<tr><th>Bus</th><th>Route</th><th>Time</th><th>Status</th><th>Timepoints</th><th>Action</th></tr>";
+  const trips=await loadDriverSchedules(currentUser.username);
+
+  trips.forEach(tr=>{
+    const r=t.insertRow();
+    r.insertCell().innerText=tr.bus;
+    r.insertCell().innerText=tr.route;
+    r.insertCell().innerText=tr.time;
+    r.insertCell().innerText=tr.status;
+
+    r.insertCell().innerHTML=tr.points.map((p,i)=>
+      `${p.arrived?"🟢":"⚪"} ${p.label} <button onclick="arrive('${tr.id}',${i})">Arrived</button>`
+    ).join("<br>");
+
+    r.insertCell().innerHTML=`<button onclick="endTrip('${tr.id}')">End Trip</button>`;
   });
-  autoLateCheck();
-}(){
-  let tbl=document.getElementById('driverSchedule');
-  tbl.innerHTML='<tr><th>Bus</th><th>Route</th><th>Departure</th><th>Status</th><th>Action</th></tr>';
-  (schedules[user]||[]).forEach((s,i)=>{
-    let r=tbl.insertRow();
-    r.insertCell(0).innerText=s.bus;
-    r.insertCell(1).innerText=s.route;
-    r.insertCell(2).innerText=s.time;
-    let st=r.insertCell(3);
-    st.innerText=s.status;
-    let act=r.insertCell(4);
-    if(!s.accepted){let b=document.createElement('button');b.innerText='Accept';b.onclick=()=>acceptTrip(i);act.appendChild(b);} 
-    else if(!s.completed){let b=document.createElement('button');b.innerText='End Trip';b.onclick=()=>endTrip(i);act.appendChild(b);} 
-  });
-  autoLateCheck();
-}(){
-  let tbl=document.getElementById('driverSchedule');
-  tbl.innerHTML='<tr><th>Bus</th><th>Route</th><th>Departure</th><th>Status</th></tr>';
-  if(schedules[user]){
-    let s=schedules[user];
-    let r=tbl.insertRow();
-    r.insertCell(0).innerText=s.bus;
-    r.insertCell(1).innerText=s.route;
-    r.insertCell(2).innerText=s.time;
-    let st=r.insertCell(3);st.innerText=s.status;st.className='status-on';
-  }
 }
 
-function markLate(){
-  if(schedules[user]){
-    schedules[user].status='Late';
-    localStorage.setItem('schedules',JSON.stringify(schedules));
-  }
-  document.getElementById('onTimeBox').innerText='🔴 You are LATE';
-  logActivity('Driver marked late');
+async function arrive(id,i){
+  const ref=db.collection("schedules").doc(currentUser.username).collection("trips").doc(id);
+  const snap=await ref.get();
+  const t=snap.data();
+  t.points[i].arrived=true;
+  await ref.update({ points:t.points });
+  loadDriver();
 }
-function addAccount(){if(role!=='dispatcher'){alert('Dispatcher only');return;}users[newUser.value]={password:newPass.value,role:newRole.value};saveUsers();logActivity('Account updated: '+newUser.value);}
-function changePassword(){if(users[user]&&users[user].password===oldPass.value){users[user].password=newPassSelf.value;saveUsers();logActivity('Password changed');}}
-function changeBus(){if(role==='driver'){assignedBus=newBus.value;logActivity('Bus changed to '+assignedBus);}}
 
-// ====== LOGS ======
-function logActivity(msg){activityLog.push(`[${new Date().toLocaleTimeString()}] ${msg}`);localStorage.setItem('activityLog',JSON.stringify(activityLog));function renderBoard(){let b=document.getElementById('board');if(!b)return;b.innerHTML='<tr><th>Driver</th><th>Bus</th><th>Route</th><th>Time</th><th>Status</th><th>Approved</th></tr>';Object.keys(schedules).forEach(d=>{schedules[d].forEach((s,i)=>{let r=b.insertRow();r.insertCell(0).innerText=d;r.insertCell(1).innerText=s.bus;r.insertCell(2).innerText=s.route;r.insertCell(3).innerText=s.time;r.insertCell(4).innerText=s.status;let a=r.insertCell(5);if(role==='supervisor'&&!s.approved){let btn=document.createElement('button');btn.innerText='Approve';btn.onclick=()=>{s.approved=true;saveSchedules();logActivity('Supervisor approved trip');renderBoard();};a.appendChild(btn);}else{a.innerText=s.approved?'Yes':'No';}});});}
+async function endTrip(id){
+  await db.collection("schedules").doc(currentUser.username).collection("trips").doc(id).update({ status:"Completed" });
+  loadDriver();
+}
 
-renderLogs();renderBoard();();}
-function renderLogs(){activityBox.innerText=activityLog.slice(-50).join('
-');}
-function exportLogs(){let csv=activityLog.join('
-');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='activity_logs.csv';a.click();}
-function saveUsers(){localStorage.setItem('users',JSON.stringify(users));}
-renderLogs();
-
-// ====== FIREBASE (OPTIONAL FREE TIER) ======
-// To enable cross-device accounts/logs:
-// 1) Create Firebase project (free)
-// 2) Enable Firestore
-// 3) Paste config here and replace localStorage calls with Firestore writes/reads
+/* ================= BOARD ================= */
+async function renderBoard(id){
+  const t=document.getElementById(id);
+  t.innerHTML="<tr><th>Driver</th><th>Bus</th><th>Route</th><th>Time</th><th>Status</th><th>Arrivals</th></tr>";
+  const all=await loadAllSchedules();
+  all.forEach(s=>{
+    const r=t.insertRow();
+    r.insertCell().innerText=s.driver;
+    r.insertCell().innerText=s.bus;
+    r.insertCell().innerText=s.route;
+    r.insertCell().innerText=s.time;
+    r.insertCell().innerText=s.status;
+    r.insertCell().innerText=s.points.map(p=>p.arrived?"🟢":"⚪").join(" ");
+  });
+}
 </script>
+
 </body>
 </html>
