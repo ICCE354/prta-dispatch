@@ -4,11 +4,12 @@
 <meta charset="UTF-8">
 <title>PRTA CAD / MDT System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
 body{margin:0;font-family:Arial;background:#020617;color:#e5e7eb}
 .page{display:none;padding:20px}
 input,select,textarea,button{
-  width:100%;padding:8px;margin:5px 0;
+  width:100%;padding:8px;margin:6px 0;
   background:#020617;color:#e5e7eb;
   border:1px solid #1f2937;border-radius:6px
 }
@@ -19,7 +20,6 @@ th{background:#020617}
 .late{background:#7f1d1d}
 .early{background:#1e3a8a}
 .ontime{background:#064e3b}
-.msg{border:1px solid #1f2937;padding:6px;margin-bottom:5px}
 </style>
 </head>
 
@@ -28,17 +28,21 @@ th{background:#020617}
 <!-- LOGIN -->
 <div id="loginPage" class="page">
   <h1>PRTA Secure Login</h1>
+
   <select id="role">
     <option value="driver">Driver</option>
     <option value="dispatcher">Dispatcher</option>
     <option value="supervisor">Supervisor</option>
   </select>
+
   <input id="username" placeholder="Username">
   <input id="password" type="password" placeholder="Password">
   <input id="busInput" placeholder="Bus ID (drivers only)">
+
   <label><input type="checkbox" id="pt1"> Brakes OK</label><br>
   <label><input type="checkbox" id="pt2"> Doors OK</label><br>
   <label><input type="checkbox" id="pt3"> Lights OK</label><br><br>
+
   <button onclick="login()">Login</button>
 </div>
 
@@ -49,7 +53,7 @@ th{background:#020617}
   <table id="driverTable"></table>
 </div>
 
-<!-- DISPATCHER -->
+<!-- DISPATCH -->
 <div id="dispatcherPage" class="page">
   <h1>🧑‍💻 Dispatcher</h1>
   <button onclick="logout()">Logout</button>
@@ -67,9 +71,9 @@ th{background:#020617}
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-/* 🔊 EMBEDDED DRIVER-ONLY AUDIO */
-const departSound = new Audio("data:audio/wav;base64,UklGRkbPAwBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAATElTVBoAAABJTkZPSVNGVA0AAABMYXZmNjEuMS4xMDAAAGRhdGEA" + 
-"{{TRUNCATED_FOR_READABILITY}}");
+/* 🔊 DRIVER-ONLY DEPARTURE SOUND */
+const departSound = new Audio("Timetodepart.wav");
+departSound.volume = 0.8;
 
 /* FIREBASE */
 firebase.initializeApp({
@@ -77,85 +81,166 @@ firebase.initializeApp({
   authDomain:"prta-dispatch.firebaseapp.com",
   projectId:"prta-dispatch"
 });
-const db=firebase.firestore();
+const db = firebase.firestore();
 
 /* USERS */
-const users={
+const users = {
   dispatcher:{password:"admin",role:"dispatcher"},
   U11:{password:"BIGT",role:"supervisor"},
   "3675":{password:"SR",role:"driver"}
 };
 
-let currentUser={};
+let currentUser = {};
 
 /* PAGE CONTROL */
-function show(p){
-  document.querySelectorAll(".page").forEach(x=>x.style.display="none");
-  document.getElementById(p).style.display="block";
+function show(id){
+  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+  document.getElementById(id).style.display="block";
 }
-window.onload=()=>show("loginPage");
+window.onload = ()=>show("loginPage");
 
 /* LOGIN */
 async function login(){
-  if(!users[username.value]||
-     users[username.value].password!==password.value||
-     users[username.value].role!==role.value){
-    alert("Invalid login"); return;
+  if(!users[username.value] ||
+     users[username.value].password !== password.value ||
+     users[username.value].role !== role.value){
+    alert("Invalid login");
+    return;
   }
 
-  if(role.value==="driver"&&(!(pt1.checked&&pt2.checked&&pt3.checked)||!busInput.value)){
-    alert("Pre-trip required"); return;
+  if(role.value==="driver" &&
+     (!(pt1.checked && pt2.checked && pt3.checked) || !busInput.value)){
+    alert("Pre-trip required");
+    return;
   }
 
-  currentUser={username:username.value,role:role.value};
+  currentUser = {username:username.value, role:role.value};
 
-  if(role.value==="driver"){show("driverPage"); loadDriver();}
-  if(role.value==="dispatcher"){show("dispatcherPage"); renderBoard("boardDispatcher");}
-  if(role.value==="supervisor"){show("supervisorPage"); renderBoard("boardSupervisor");}
+  if(role.value==="driver"){ show("driverPage"); loadDriver(); }
+  if(role.value==="dispatcher"){ show("dispatcherPage"); renderBoard("boardDispatcher"); }
+  if(role.value==="supervisor"){ show("supervisorPage"); renderBoard("boardSupervisor"); }
 }
 
-/* LOGOUT — HARD CLEAR */
+/* LOGOUT — DELETE ALL TRIPS */
 async function logout(){
   if(currentUser.role==="driver"){
-    const ref=db.collection("schedules").doc(currentUser.username).collection("trips");
-    const snap=await ref.get();
-    for(const d of snap.docs){await d.ref.delete();}
+    const ref = db.collection("schedules").doc(currentUser.username).collection("trips");
+    const snap = await ref.get();
+    for(const d of snap.docs){ await d.ref.delete(); }
     await db.collection("schedules").doc(currentUser.username).delete();
   }
-  currentUser={};
+  currentUser = {};
   renderBoard("boardDispatcher");
   renderBoard("boardSupervisor");
   show("loginPage");
 }
 
-/* DRIVER LOAD */
+/* DRIVER VIEW */
 async function loadDriver(){
-  const t=document.getElementById("driverTable");
-  t.innerHTML="<tr><th>Stop</th><th>Sched</th><th>Status</th></tr>";
-  const s=await db.collection("schedules").doc(currentUser.username).collection("trips").get();
+  const table = document.getElementById("driverTable");
+  table.innerHTML = "<tr><th>Stop</th><th>Time</th><th>Status</th></tr>";
 
-  s.forEach(d=>{
-    const tr=d.data();
-    tr.points.forEach((p,i)=>{
-      const now=new Date();
-      const [h,m]=p.sched.split(":").map(Number);
-      const sched=new Date(); sched.setHours(h,m,0,0);
+  const snap = await db.collection("schedules")
+    .doc(currentUser.username)
+    .collection("trips")
+    .get();
 
-      /* 🔊 DRIVER DEPARTURE SOUND */
+  snap.forEach(doc=>{
+    const trip = doc.data();
+    trip.points.forEach((p,i)=>{
+      const now = new Date();
+      const [h,m] = p.sched.split(":").map(Number);
+      const sched = new Date();
+      sched.setHours(h,m,0,0);
+
+      /* 🔊 PLAY SOUND ON DEPARTURE TIME */
       if(!p.arrived && !p.alerted && now >= sched){
-        departSound.play();
+        departSound.play().catch(()=>{});
         p.alerted = true;
         db.collection("schedules")
           .doc(currentUser.username)
           .collection("trips")
-          .doc(d.id)
-          .update({points:tr.points});
+          .doc(doc.id)
+          .update({points:trip.points});
       }
 
-      const r=t.insertRow();
-      r.insertCell().innerText=p.label;
-      r.insertCell().innerText=p.sched;
-      r.insertCell().innerHTML=p.arrived
-        ? `${p.arrivalStatus} (${p.delta}m)`
-        : `<button onclick="arrive('${d.id
+      const row = table.insertRow();
+      row.insertCell().innerText = p.label;
+      row.insertCell().innerText = p.sched;
 
+      if(p.arrived){
+        row.insertCell().innerText =
+          `${p.status} (${p.delta}m)`;
+        row.classList.add(p.status==="Late"?"late":p.status==="Early"?"early":"ontime");
+      }else{
+        row.insertCell().innerHTML =
+          `<button onclick="arrive('${doc.id}',${i})">Arrived</button>`;
+      }
+    });
+  });
+}
+
+/* ARRIVE */
+async function arrive(id,i){
+  const ref = db.collection("schedules").doc(currentUser.username).collection("trips").doc(id);
+  const trip = (await ref.get()).data();
+
+  const now = new Date();
+  const [h,m] = trip.points[i].sched.split(":").map(Number);
+  const sched = new Date();
+  sched.setHours(h,m,0,0);
+
+  const diff = Math.round((now - sched)/60000);
+  let status = "On Time";
+  if(diff >= 2) status = "Late";
+  if(diff <= -2) status = "Early";
+
+  trip.points[i] = {
+    ...trip.points[i],
+    arrived:true,
+    status,
+    delta:Math.abs(diff)
+  };
+
+  if(trip.points.every(p=>p.arrived)){
+    await ref.delete();
+  }else{
+    await ref.update({points:trip.points});
+  }
+
+  loadDriver();
+  renderBoard("boardDispatcher");
+  renderBoard("boardSupervisor");
+}
+
+/* BOARDS */
+async function renderBoard(id){
+  const table = document.getElementById(id);
+  if(!table) return;
+
+  table.innerHTML = "<tr><th>Driver</th><th>Status</th></tr>";
+
+  const drivers = await db.collection("schedules").get();
+  for(const d of drivers.docs){
+    const trips = await d.ref.collection("trips").get();
+    trips.forEach(t=>{
+      const row = table.insertRow();
+      row.insertCell().innerText = d.id;
+      row.insertCell().innerText =
+        t.data().points.map(p=>{
+          if(!p.arrived) return "⚪";
+          if(p.status==="Late") return "🔴";
+          if(p.status==="Early") return "🔵";
+          return "🟢";
+        }).join(" ");
+    });
+  }
+}
+
+/* POLL FOR DRIVER SOUND */
+setInterval(()=>{
+  if(currentUser.role==="driver") loadDriver();
+},30000);
+</script>
+</body>
+</html>
