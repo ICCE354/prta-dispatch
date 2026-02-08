@@ -256,7 +256,7 @@ async function loadMessagesSup(){
 }
 
 // ================= SCHEDULE / DRIVER / BOARD =================
-async function createSchedule(){
+<button onclick="createSched()">Assign Schedule</button>
   const points = schPoints.value.split("|").map(p=>{
     const [label,time] = p.trim().split(" ");
     return {label,sched:time,arrived:false,alerted:false};
