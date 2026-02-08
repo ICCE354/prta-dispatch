@@ -16,6 +16,8 @@ th{background:#020617}
 .early{background:#1e3a8a}
 .ontime{background:#064e3b}
 .box{border:2px solid #2563eb;padding:12px;margin:12px 0}
+.msgPending{background:#7c2d12}
+.msgAck{background:#064e3b}
 </style>
 </head>
 
@@ -37,6 +39,16 @@ th{background:#020617}
 <div id="driverPage" class="page">
 <h2>Driver MDT</h2>
 <button onclick="logout()">Logout</button>
+
+<div class="box">
+<h3>Radio Messages</h3>
+<button onclick="sendMsg('Running Late')">Running Late</button>
+<button onclick="sendMsg('Traffic Delay')">Traffic Delay</button>
+<button onclick="sendMsg('Mechanical Issue')">Mechanical Issue</button>
+<button onclick="sendMsg('Customer Declined Shoulder Strap')">Customer Declined Shoulder Strap</button>
+<button onclick="sendMsg('Operator Assistance Requested')">Operator Assistance Requested</button>
+</div>
+
 <table id="driverTable"></table>
 </div>
 
@@ -53,6 +65,9 @@ th{background:#020617}
 <button onclick="createSchedule()">Assign</button>
 </div>
 
+<h3>Incoming Messages</h3>
+<table id="msgTable"></table>
+
 <h3>Live Board</h3>
 <table id="dispatchBoard"></table>
 </div>
@@ -61,6 +76,11 @@ th{background:#020617}
 <div id="supervisorPage" class="page">
 <h2>Supervisor</h2>
 <button onclick="logout()">Logout</button>
+
+<h3>Messages</h3>
+<table id="msgTableSup"></table>
+
+<h3>Live Board</h3>
 <table id="supervisorBoard"></table>
 </div>
 
@@ -102,9 +122,10 @@ function login(){
   }
   currentUser={username:u,role:users[u].role};
   currentBus=busInput.value||"";
+
   if(currentUser.role==="driver"){show("driverPage");listenDriver();}
-  if(currentUser.role==="dispatcher"){show("dispatcherPage");listenBoard("dispatchBoard");}
-  if(currentUser.role==="supervisor"){show("supervisorPage");listenBoard("supervisorBoard");}
+  if(currentUser.role==="dispatcher"){show("dispatcherPage");listenBoard("dispatchBoard");listenMessages();}
+  if(currentUser.role==="supervisor"){show("supervisorPage");listenBoard("supervisorBoard");listenMessagesSup();}
 }
 
 async function logout(){
@@ -119,6 +140,7 @@ async function logout(){
   show("loginPage");
 }
 
+/* SCHEDULES */
 async function createSchedule(){
   const points=schPoints.value.split("|").map(p=>{
     const a=p.trim().split(" ");
@@ -132,6 +154,7 @@ async function createSchedule(){
   schPoints.value="";
 }
 
+/* DRIVER */
 function listenDriver(){
   db.collection("schedules").doc(currentUser.username)
     .collection("trips")
@@ -153,22 +176,19 @@ function listenDriver(){
 async function arrive(id,i){
   const ref=db.collection("schedules").doc(currentUser.username).collection("trips").doc(id);
   const trip=(await ref.get()).data();
-
   const now=new Date();
   const [h,m]=trip.points[i].time.split(":").map(Number);
   const sched=new Date();sched.setHours(h,m,0,0);
   const diff=Math.round((now-sched)/60000);
-
   let status="On Time";
   if(diff>=2)status="Late";
   if(diff<=-2)status="Early";
-
   trip.points[i]={...trip.points[i],arrived:true,delta:Math.abs(diff),status};
-
   if(trip.points.every(p=>p.arrived))await ref.delete();
   else await ref.update({points:trip.points});
 }
 
+/* LIVE BOARD */
 function listenBoard(id){
   const t=document.getElementById(id);
   unsubBoard=db.collection("schedules").onSnapshot(async snap=>{
@@ -188,7 +208,49 @@ function listenBoard(id){
     }
   });
 }
+
+/* MESSAGING */
+async function sendMsg(text){
+  await db.collection("messages").add({
+    driver:currentUser.username,
+    bus:currentBus,
+    text,
+    status:"Pending",
+    time:new Date().toLocaleTimeString()
+  });
+}
+
+function listenMessages(){
+  db.collection("messages").onSnapshot(snap=>{
+    msgTable.innerHTML="<tr><th>Driver</th><th>Bus</th><th>Message</th><th>Status</th></tr>";
+    snap.forEach(doc=>{
+      const m=doc.data(),r=msgTable.insertRow();
+      r.className=m.status==="Pending"?"msgPending":"msgAck";
+      r.insertCell().innerText=m.driver;
+      r.insertCell().innerText=m.bus;
+      r.insertCell().innerText=`${m.text} (${m.time})`;
+      r.insertCell().innerHTML=m.status==="Pending"
+        ?`<button onclick="db.collection('messages').doc('${doc.id}').update({status:'Acknowledged'})">Ack</button>`
+        :"Acknowledged";
+    });
+  });
+}
+
+function listenMessagesSup(){
+  db.collection("messages").onSnapshot(snap=>{
+    msgTableSup.innerHTML="<tr><th>Driver</th><th>Bus</th><th>Message</th><th>Status</th></tr>";
+    snap.forEach(doc=>{
+      const m=doc.data(),r=msgTableSup.insertRow();
+      r.className=m.status==="Pending"?"msgPending":"msgAck";
+      r.insertCell().innerText=m.driver;
+      r.insertCell().innerText=m.bus;
+      r.insertCell().innerText=`${m.text} (${m.time})`;
+      r.insertCell().innerText=m.status;
+    });
+  });
+}
 </script>
 </body>
 </html>
+
 
