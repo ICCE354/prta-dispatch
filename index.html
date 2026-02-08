@@ -28,21 +28,57 @@ th{background:#020617}
 <body>
 
 <!-- LOGIN -->
-<div id="loginPage" class="page" style="display:block">
-<h1>PRTA Secure Login</h1>
-<select id="role">
-  <option value="driver">Driver</option>
-  <option value="dispatcher">Dispatcher</option>
-  <option value="supervisor">Supervisor</option>
-</select>
-<input id="username" placeholder="Username">
-<input id="password" type="password" placeholder="Password">
-<input id="busInput" placeholder="Bus ID (drivers only)">
-<label><input type="checkbox" id="pt1"> Brakes OK</label><br>
-<label><input type="checkbox" id="pt2"> Doors OK</label><br>
-<label><input type="checkbox" id="pt3"> Lights OK</label><br><br>
-<button onclick="login()">Login</button>
-</div>
+function login(){
+  const u = username.value.trim();
+  const p = password.value.trim();
+
+  if(!users[u]){
+    alert("User not found");
+    return;
+  }
+
+  if(users[u].password !== p){
+    alert("Incorrect password");
+    return;
+  }
+
+  // AUTO-ASSIGN ROLE FROM ACCOUNT
+  const userRole = users[u].role;
+
+  // DRIVER REQUIREMENTS ONLY APPLY TO DRIVERS
+  if(userRole === "driver"){
+    if(!busInput.value){
+      alert("Bus ID required");
+      return;
+    }
+    if(!(pt1.checked && pt2.checked && pt3.checked)){
+      alert("Pre-trip must be completed");
+      return;
+    }
+  }
+
+  currentUser = { username: u, role: userRole };
+  currentBus = busInput.value || "";
+
+  // ROUTE USER
+  if(userRole === "driver"){
+    show("driverPage");
+    loadDriver();
+  }
+
+  if(userRole === "dispatcher"){
+    show("dispatcherPage");
+    listenBoard("boardDispatcher");
+    listenSchedules();
+    loadMessages();
+  }
+
+  if(userRole === "supervisor"){
+    show("supervisorPage");
+    listenBoard("boardSupervisor");
+    loadMessagesSup();
+  }
+}
 
 <!-- DRIVER -->
 <div id="driverPage" class="page">
