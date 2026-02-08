@@ -6,80 +6,61 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body {
-  margin:0;
-  font-family: Arial, sans-serif;
-  background:#020617;
-  color:#e5e7eb;
-}
+body { margin:0; font-family:Arial,sans-serif; background:#020617; color:#e5e7eb; }
 .page { display:none; padding:20px; }
-h1 { margin-top:0; }
+h1,h3 { margin-top:0; }
 input, select, textarea, button {
-  width:100%;
-  padding:8px;
-  margin:5px 0;
-  background:#020617;
-  color:#e5e7eb;
-  border:1px solid #1f2937;
-  border-radius:6px;
+  width:100%; padding:8px; margin:5px 0;
+  background:#020617; color:#e5e7eb;
+  border:1px solid #1f2937; border-radius:6px;
 }
-button {
-  background:#2563eb;
-  cursor:pointer;
-  font-weight:bold;
-}
-table {
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-}
-th, td {
-  border:1px solid #1f2937;
-  padding:6px;
-  text-align:center;
-}
+button { background:#2563eb; font-weight:bold; cursor:pointer; }
+table { width:100%; border-collapse:collapse; margin-top:10px; }
+th, td { border:1px solid #1f2937; padding:6px; text-align:center; }
 th { background:#020617; }
+.msg { border:1px solid #1f2937; padding:6px; margin-bottom:5px; }
+.late { background:#3f1d1d; }
 </style>
 </head>
 
 <body>
 
-<!-- ================= LOGIN PAGE ================= -->
+<!-- LOGIN -->
 <div id="loginPage" class="page">
   <h1>PRTA Secure Login</h1>
-
   <select id="role">
     <option value="driver">Driver</option>
     <option value="supervisor">Supervisor</option>
     <option value="dispatcher">Dispatcher</option>
   </select>
-
   <input id="username" placeholder="Username">
-  <input id="password" placeholder="Password" type="password">
+  <input id="password" type="password" placeholder="Password">
   <input id="busInput" placeholder="Bus ID (drivers only)">
-
   <label><input type="checkbox" id="pt1"> Brakes OK</label><br>
   <label><input type="checkbox" id="pt2"> Doors OK</label><br>
   <label><input type="checkbox" id="pt3"> Lights OK</label><br><br>
-
   <button onclick="login()">Login</button>
 </div>
 
-<!-- ================= DRIVER PAGE ================= -->
+<!-- DRIVER -->
 <div id="driverPage" class="page">
   <h1>🚍 Driver Dashboard</h1>
   <button onclick="logout()">Logout</button>
+
+  <h3>📨 Messages</h3>
+  <div id="driverMessages"></div>
+
   <table id="driverTable"></table>
 </div>
 
-<!-- ================= SUPERVISOR PAGE ================= -->
+<!-- SUPERVISOR -->
 <div id="supervisorPage" class="page">
   <h1>🧑‍💼 Supervisor Control</h1>
   <button onclick="logout()">Logout</button>
   <table id="boardSupervisor"></table>
 </div>
 
-<!-- ================= DISPATCHER PAGE ================= -->
+<!-- DISPATCHER -->
 <div id="dispatcherPage" class="page">
   <h1>🧑‍💻 Dispatcher Operations</h1>
   <button onclick="logout()">Logout</button>
@@ -92,16 +73,21 @@ th { background:#020617; }
   <textarea id="schPoints" placeholder="Up to 5 timepoints per line, use |"></textarea>
   <button onclick="createSchedule()">Assign Schedule</button>
 
-  <h3>Live Schedule Board</h3>
+  <h3>📻 Dispatch Message</h3>
+  <input id="msgDriver" placeholder="Driver Username">
+  <textarea id="msgText" placeholder="Message"></textarea>
+  <button onclick="sendMessage()">Send Message</button>
+
+  <h3>Live Board</h3>
   <table id="boardDispatcher"></table>
 </div>
 
-<!-- ================= FIREBASE SDKs ================= -->
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-/* ================= FIREBASE CONFIG ================= */
+/* FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyAQ0dtJowQk2aPV_laJNJoUZFJQLxEr9u0",
   authDomain: "prta-dispatch.firebaseapp.com",
@@ -110,139 +96,140 @@ const firebaseConfig = {
   messagingSenderId: "1023193983810",
   appId: "1:1023193983810:web:b66f4b577f1e4c32a6fddb"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* ================= USERS ================= */
+/* USERS */
 const users = {
-  dispatcher: { password:"admin", role:"dispatcher" },
-  U11: { password:"BIGT", role:"supervisor" },
-  "3675": { password:"SR", role:"driver" },
-  "3804": { password:"ER", role:"driver" }
+  dispatcher:{password:"admin",role:"dispatcher"},
+  U11:{password:"BIGT",role:"supervisor"},
+  "3675":{password:"SR",role:"driver"},
+  "3804":{password:"ER",role:"driver"}
 };
 
-let currentUser = { loggedIn:false, role:"", username:"", bus:"" };
+let currentUser={loggedIn:false,role:"",username:"",bus:""};
 
-/* ================= PAGE CONTROL ================= */
-function hideAllPages(){
-  document.querySelectorAll(".page").forEach(p => p.style.display="none");
-}
+/* PAGE CONTROL */
+function hideAllPages(){ document.querySelectorAll(".page").forEach(p=>p.style.display="none"); }
 function show(p){ hideAllPages(); document.getElementById(p).style.display="block"; }
-window.onload = () => show("loginPage");
+window.onload=()=>show("loginPage");
 
-/* ================= LOGIN ================= */
+/* TIME HELPERS */
+function minutesLate(t){
+  const [h,m]=t.split(":").map(Number);
+  const now=new Date();
+  const sched=new Date(); sched.setHours(h,m,0,0);
+  return Math.max(0,Math.floor((now-sched)/60000));
+}
+
+/* LOGIN */
 async function login(){
-  if(!users[username.value] || users[username.value].password !== password.value || users[username.value].role !== role.value){
-    alert("Invalid login"); return;
+  if(!users[username.value]||users[username.value].password!==password.value||users[username.value].role!==role.value){
+    alert("Invalid login");return;
   }
-  if(role.value === "driver" && (!(pt1.checked && pt2.checked && pt3.checked) || !busInput.value)){
-    alert("Pre-trip and bus required"); return;
+  if(role.value==="driver"&&(!(pt1.checked&&pt2.checked&&pt3.checked)||!busInput.value)){
+    alert("Pre-trip and bus required");return;
   }
-
-  currentUser = {
-    loggedIn:true,
-    role:role.value,
-    username:username.value,
-    bus:busInput.value
-  };
-
-  if(role.value==="driver"){ show("driverPage"); loadDriver(); }
-  if(role.value==="supervisor"){ show("supervisorPage"); renderBoard("boardSupervisor"); }
-  if(role.value==="dispatcher"){ show("dispatcherPage"); renderBoard("boardDispatcher"); }
+  currentUser={loggedIn:true,role:role.value,username:username.value,bus:busInput.value};
+  if(role.value==="driver"){show("driverPage");loadDriver();loadDriverMessages();}
+  if(role.value==="supervisor"){show("supervisorPage");renderBoard("boardSupervisor");}
+  if(role.value==="dispatcher"){show("dispatcherPage");renderBoard("boardDispatcher");}
 }
+function logout(){ currentUser={loggedIn:false}; show("loginPage"); }
 
-/* ================= LOGOUT ================= */
-function logout(){
-  currentUser = { loggedIn:false, role:"", username:"", bus:"" };
-  show("loginPage");
-}
-
-/* ================= FIRESTORE HELPERS ================= */
-async function saveSchedule(driver, trip){
+/* FIRESTORE HELPERS */
+async function saveSchedule(driver,trip){
   await db.collection("schedules").doc(driver).collection("trips").add(trip);
 }
 async function loadDriverSchedules(driver){
-  const snap = await db.collection("schedules").doc(driver).collection("trips").get();
-  return snap.docs.map(d => ({ id:d.id, ...d.data() }));
+  const s=await db.collection("schedules").doc(driver).collection("trips").get();
+  return s.docs.map(d=>({id:d.id,...d.data()}));
 }
 async function loadAllSchedules(){
-  const all=[];
-  const drivers=await db.collection("schedules").get();
-  for(const d of drivers.docs){
-    const trips=await d.ref.collection("trips").get();
-    trips.forEach(t => all.push({ driver:d.id, id:t.id, ...t.data() }));
+  const out=[]; const ds=await db.collection("schedules").get();
+  for(const d of ds.docs){
+    const t=await d.ref.collection("trips").get();
+    t.forEach(x=>out.push({driver:d.id,id:x.id,...x.data()}));
   }
-  return all;
+  return out;
 }
 
-/* ================= DISPATCHER ================= */
+/* DISPATCHER */
 async function createSchedule(){
-  const points = schPoints.value.split("\n").flatMap(l =>
-    l.split("|").slice(0,5).map(p => ({ label:p.trim(), arrived:false }))
-  );
-
-  await saveSchedule(schDriver.value,{
-    bus:schBus.value,
-    route:schRoute.value,
-    time:schTime.value,
-    status:"On Time",
-    points
-  });
+  const pts=schPoints.value.split("\n").flatMap(l=>l.split("|").slice(0,5).map(p=>({label:p.trim(),arrived:false})));
+  await saveSchedule(schDriver.value,{bus:schBus.value,route:schRoute.value,time:schTime.value,status:"On Time",points:pts});
   renderBoard("boardDispatcher");
 }
 
-/* ================= DRIVER ================= */
+/* DRIVER */
 async function loadDriver(){
   const t=document.getElementById("driverTable");
   t.innerHTML="<tr><th>Bus</th><th>Route</th><th>Time</th><th>Status</th><th>Timepoints</th><th>Action</th></tr>";
   const trips=await loadDriverSchedules(currentUser.username);
-
   trips.forEach(tr=>{
-    const r=t.insertRow();
+    const late=minutesLate(tr.time);
+    const status=tr.status==="Completed"?"Completed":late>0?"Late":"On Time";
+    const r=t.insertRow(); if(late>0) r.classList.add("late");
     r.insertCell().innerText=tr.bus;
     r.insertCell().innerText=tr.route;
     r.insertCell().innerText=tr.time;
-    r.insertCell().innerText=tr.status;
-
-    r.insertCell().innerHTML=tr.points.map((p,i)=>
-      `${p.arrived?"🟢":"⚪"} ${p.label} <button onclick="arrive('${tr.id}',${i})">Arrived</button>`
-    ).join("<br>");
-
+    r.insertCell().innerText=status+(late>0?` (${late}m)`:"");
+    r.insertCell().innerHTML=tr.points.map((p,i)=>`${p.arrived?"🟢":"⚪"} ${p.label} <button onclick="arrive('${tr.id}',${i})">Arrived</button>`).join("<br>");
     r.insertCell().innerHTML=`<button onclick="endTrip('${tr.id}')">End Trip</button>`;
   });
 }
-
 async function arrive(id,i){
   const ref=db.collection("schedules").doc(currentUser.username).collection("trips").doc(id);
-  const snap=await ref.get();
-  const t=snap.data();
-  t.points[i].arrived=true;
-  await ref.update({ points:t.points });
-  loadDriver();
+  const s=await ref.get(); const t=s.data(); t.points[i].arrived=true;
+  await ref.update({points:t.points});
+  loadDriver(); renderBoard("boardDispatcher"); renderBoard("boardSupervisor");
 }
-
 async function endTrip(id){
-  await db.collection("schedules").doc(currentUser.username).collection("trips").doc(id).update({ status:"Completed" });
-  loadDriver();
+  await db.collection("schedules").doc(currentUser.username).collection("trips").doc(id).update({status:"Completed"});
+  loadDriver(); renderBoard("boardDispatcher"); renderBoard("boardSupervisor");
 }
 
-/* ================= BOARD ================= */
+/* BOARD */
 async function renderBoard(id){
   const t=document.getElementById(id);
-  t.innerHTML="<tr><th>Driver</th><th>Bus</th><th>Route</th><th>Time</th><th>Status</th><th>Arrivals</th></tr>";
+  t.innerHTML="<tr><th>Driver</th><th>Bus</th><th>Route</th><th>Time</th><th>Status</th><th>Late By</th><th>Arrivals</th></tr>";
   const all=await loadAllSchedules();
-  all.forEach(s=>{
-    const r=t.insertRow();
-    r.insertCell().innerText=s.driver;
-    r.insertCell().innerText=s.bus;
-    r.insertCell().innerText=s.route;
-    r.insertCell().innerText=s.time;
-    r.insertCell().innerText=s.status;
-    r.insertCell().innerText=s.points.map(p=>p.arrived?"🟢":"⚪").join(" ");
+  if(all.length===0){const r=t.insertRow();r.insertCell().colSpan=7;r.cells[0].innerText="No trips";return;}
+  all.forEach(tr=>{
+    const late=minutesLate(tr.time);
+    const status=tr.status==="Completed"?"Completed":late>0?"Late":"On Time";
+    const r=t.insertRow(); if(late>0) r.classList.add("late");
+    r.insertCell().innerText=tr.driver;
+    r.insertCell().innerText=tr.bus;
+    r.insertCell().innerText=tr.route;
+    r.insertCell().innerText=tr.time;
+    r.insertCell().innerText=status;
+    r.insertCell().innerText=late>0?late+" min":"-";
+    r.insertCell().innerText=tr.points.map(p=>p.arrived?"🟢":"⚪").join(" ");
   });
 }
-</script>
 
+/* MESSAGES */
+async function sendMessage(){
+  await db.collection("messages").doc(msgDriver.value).collection("inbox").add({
+    from:"Dispatcher",text:msgText.value,time:firebase.firestore.FieldValue.serverTimestamp(),read:false
+  });
+  msgText.value=""; alert("Message sent");
+}
+async function loadDriverMessages(){
+  const box=document.getElementById("driverMessages"); box.innerHTML="";
+  const s=await db.collection("messages").doc(currentUser.username).collection("inbox").orderBy("time","desc").get();
+  if(s.empty){box.innerHTML="<em>No messages</em>";return;}
+  s.forEach(d=>{
+    const m=d.data(); const div=document.createElement("div"); div.className="msg";
+    div.innerHTML=`<strong>${m.from}</strong><br>${m.text}<br><small>${m.time?.toDate().toLocaleTimeString()||""}</small>${m.read?"":`<br><button onclick="ackMessage('${d.id}')">Acknowledge</button>`}`;
+    box.appendChild(div);
+  });
+}
+async function ackMessage(id){
+  await db.collection("messages").doc(currentUser.username).collection("inbox").doc(id).update({read:true});
+  loadDriverMessages();
+}
+</script>
 </body>
 </html>
