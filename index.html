@@ -1,111 +1,194 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>PRTA Dispatch System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#020617;
-  color:#e5e7eb;
-}
+body{margin:0;font-family:Arial;background:#020617;color:#e5e7eb}
 .page{display:none;padding:20px}
-input,button{
-  width:100%;
-  padding:10px;
-  margin:8px 0;
-  background:#020617;
-  color:#e5e7eb;
-  border:1px solid #1f2937;
-  border-radius:6px;
-}
-button{
-  background:#2563eb;
-  font-weight:bold;
-  cursor:pointer;
-}
-button:hover{opacity:0.9}
-.box{
-  border:2px solid #2563eb;
-  padding:15px;
-  margin:15px 0;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-}
-th,td{
-  border:1px solid #1f2937;
-  padding:8px;
-  text-align:center;
-}
+input,textarea,button{width:100%;padding:8px;margin:6px 0;background:#020617;color:#e5e7eb;border:1px solid #1f2937;border-radius:6px}
+button{background:#2563eb;font-weight:bold;cursor:pointer}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #1f2937;padding:6px;text-align:center}
 th{background:#020617}
-.header{
-  background:#2563eb;
-  padding:10px;
-  text-align:center;
-  font-weight:bold;
-}
+.late{background:#7f1d1d}
+.early{background:#1e3a8a}
+.ontime{background:#064e3b}
+.box{border:2px solid #2563eb;padding:12px;margin:12px 0}
 </style>
 </head>
 
 <body>
 
-<!-- ================= LOGIN ================= -->
+<!-- LOGIN -->
 <div id="loginPage" class="page" style="display:block">
-  <h1>PRTA Secure Login</h1>
-
-  <input id="username" placeholder="Username">
-  <input id="password" type="password" placeholder="Password">
-  <input id="busInput" placeholder="Bus ID (drivers only)">
-
-  <label><input type="checkbox" id="pt1"> Brakes OK</label><br>
-  <label><input type="checkbox" id="pt2"> Doors OK</label><br>
-  <label><input type="checkbox" id="pt3"> Lights OK</label><br>
-
-  <button onclick="login()">Login</button>
+<h2>PRTA Secure Login</h2>
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+<input id="busInput" placeholder="Bus ID (drivers)">
+<label><input type="checkbox" id="pt1"> Brakes</label>
+<label><input type="checkbox" id="pt2"> Doors</label>
+<label><input type="checkbox" id="pt3"> Lights</label>
+<button onclick="login()">Login</button>
 </div>
 
-<!-- ================= DRIVER ================= -->
+<!-- DRIVER -->
 <div id="driverPage" class="page">
-  <div class="header">🚍 Driver MDT</div>
-  <button onclick="logout()">Logout</button>
-
-  <div class="box">
-    <h3>Assigned Schedule</h3>
-    <p>(Schedule system placeholder – base file)</p>
-  </div>
+<h2>Driver MDT</h2>
+<button onclick="logout()">Logout</button>
+<table id="driverTable"></table>
 </div>
 
-<!-- ================= DISPATCHER ================= -->
+<!-- DISPATCH -->
 <div id="dispatcherPage" class="page">
-  <div class="header">🧑‍💻 Dispatcher</div>
-  <button onclick="logout()">Logout</button>
+<h2>Dispatcher</h2>
+<button onclick="logout()">Logout</button>
 
-  <div class="box">
-    <h3>Dispatcher Panel</h3>
-    <p>Dispatcher successfully logged in.</p>
-  </div>
+<div class="box">
+<h3>Create Schedule</h3>
+<input id="schDriver" placeholder="Driver">
+<input id="schBus" placeholder="Bus">
+<textarea id="schPoints" placeholder="StopA 15:30 | StopB 15:45"></textarea>
+<button onclick="createSchedule()">Assign</button>
 </div>
 
-<!-- ================= SUPERVISOR ================= -->
+<h3>Live Board</h3>
+<table id="dispatchBoard"></table>
+</div>
+
+<!-- SUPERVISOR -->
 <div id="supervisorPage" class="page">
-  <div class="header">🧑‍💼 Supervisor</div>
-  <button onclick="logout()">Logout</button>
-
-  <div class="box">
-    <h3>Supervisor Panel</h3>
-    <p>Supervisor successfully logged in.</p>
-  </div>
+<h2>Supervisor</h2>
+<button onclick="logout()">Logout</button>
+<table id="supervisorBoard"></table>
 </div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-/* ================= USERS ================= */
-const users = {
-  // Dispatchers
-  dispatcher:
+firebase.initializeApp({
+  apiKey:"AIzaSyAQ0dtJowQk2aPV_laJNJoUZFJQLxEr9u0",
+  authDomain:"prta-dispatch.firebaseapp.com",
+  projectId:"prta-dispatch"
+});
+const db=firebase.firestore();
+
+const users={
+  dispatcher:{password:"admin",role:"dispatcher"},
+  D01:{password:"DISP1",role:"dispatcher"},
+  U11:{password:"BIGT",role:"supervisor"},
+  SUP1:{password:"SUP1",role:"supervisor"},
+  "3675":{password:"SR",role:"driver"},
+  "3804":{password:"ER",role:"driver"}
+};
+
+let currentUser={},currentBus="";
+let unsubBoard=null;
+
+function show(id){
+  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+  document.getElementById(id).style.display="block";
+}
+
+function login(){
+  const u=username.value.trim(),p=password.value.trim();
+  if(!users[u]||users[u].password!==p){alert("Invalid login");return;}
+  if(users[u].role==="driver"){
+    if(!busInput.value||!(pt1.checked&&pt2.checked&&pt3.checked)){
+      alert("Pre-trip required");return;
+    }
+  }
+  currentUser={username:u,role:users[u].role};
+  currentBus=busInput.value||"";
+  if(currentUser.role==="driver"){show("driverPage");listenDriver();}
+  if(currentUser.role==="dispatcher"){show("dispatcherPage");listenBoard("dispatchBoard");}
+  if(currentUser.role==="supervisor"){show("supervisorPage");listenBoard("supervisorBoard");}
+}
+
+async function logout(){
+  if(unsubBoard)unsubBoard();
+  if(currentUser.role==="driver"){
+    const ref=db.collection("schedules").doc(currentUser.username);
+    const snap=await ref.collection("trips").get();
+    snap.forEach(d=>d.ref.delete());
+    await ref.delete();
+  }
+  currentUser={};
+  show("loginPage");
+}
+
+async function createSchedule(){
+  const points=schPoints.value.split("|").map(p=>{
+    const a=p.trim().split(" ");
+    const t=a.pop();
+    return{label:a.join(" "),time:t,arrived:false,delta:null,status:null};
+  });
+  await db.collection("schedules")
+    .doc(schDriver.value.trim())
+    .collection("trips")
+    .add({bus:schBus.value.trim(),points});
+  schPoints.value="";
+}
+
+function listenDriver(){
+  db.collection("schedules").doc(currentUser.username)
+    .collection("trips")
+    .onSnapshot(snap=>{
+      driverTable.innerHTML="<tr><th>Stop</th><th>Sched</th><th>Status</th></tr>";
+      snap.forEach(doc=>{
+        doc.data().points.forEach((p,i)=>{
+          const r=driverTable.insertRow();
+          r.insertCell().innerText=p.label;
+          r.insertCell().innerText=p.time;
+          r.insertCell().innerHTML=p.arrived
+            ?`${p.status} (${p.delta}m)`
+            :`<button onclick="arrive('${doc.id}',${i})">Arrived</button>`;
+        });
+      });
+    });
+}
+
+async function arrive(id,i){
+  const ref=db.collection("schedules").doc(currentUser.username).collection("trips").doc(id);
+  const trip=(await ref.get()).data();
+
+  const now=new Date();
+  const [h,m]=trip.points[i].time.split(":").map(Number);
+  const sched=new Date();sched.setHours(h,m,0,0);
+  const diff=Math.round((now-sched)/60000);
+
+  let status="On Time";
+  if(diff>=2)status="Late";
+  if(diff<=-2)status="Early";
+
+  trip.points[i]={...trip.points[i],arrived:true,delta:Math.abs(diff),status};
+
+  if(trip.points.every(p=>p.arrived))await ref.delete();
+  else await ref.update({points:trip.points});
+}
+
+function listenBoard(id){
+  const t=document.getElementById(id);
+  unsubBoard=db.collection("schedules").onSnapshot(async snap=>{
+    t.innerHTML="<tr><th>Driver</th><th>Status</th></tr>";
+    for(const d of snap.docs){
+      const trips=await d.ref.collection("trips").get();
+      trips.forEach(tr=>{
+        const r=t.insertRow();
+        r.insertCell().innerText=d.id;
+        r.insertCell().innerText=tr.data().points.map(p=>{
+          if(!p.arrived)return"⚪";
+          if(p.status==="Late")return`🔴 +${p.delta}`;
+          if(p.status==="Early")return`🔵 -${p.delta}`;
+          return"🟢 0";
+        }).join(" ");
+      });
+    }
+  });
+}
+</script>
+</body>
+</html>
 
