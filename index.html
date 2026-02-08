@@ -53,18 +53,28 @@ th{background:#020617}
 </div>
 
 <!-- DISPATCHER -->
-<div id="dispatcherPage" class="page">
+<div id="dispatcherPage" class="page" style="overflow-y:auto;max-height:100vh">
+
   <h1>🧑‍💻 Dispatcher</h1>
   <button onclick="logout()">Logout</button>
 
-  <h3>📋 Schedule Builder</h3>
-  <input id="schDriver" placeholder="Driver Username (e.g. 3675)">
-  <input id="schBus" placeholder="Bus ID">
-  <textarea id="schPoints" placeholder="Terminal 15:30 | MainSt 15:45 | Depot 16:00"></textarea>
-  <button onclick="createSchedule()">Assign Schedule</button>
+  <!-- SCHEDULE BUILDER (FORCED VISIBLE) -->
+  <div style="border:2px solid #2563eb;padding:12px;margin:15px 0">
+    <h3>📋 Schedule Builder</h3>
 
+    <input id="schDriver" placeholder="Driver Username (e.g. 3675)">
+    <input id="schBus" placeholder="Bus ID">
+
+    <textarea id="schPoints" rows="3"
+      placeholder="Terminal 15:30 | MainSt 15:45 | Depot 16:00"></textarea>
+
+    <button onclick="createSchedule()">Assign Schedule</button>
+  </div>
+
+  <!-- LIVE BOARD -->
   <h3>🚦 Live Board</h3>
   <table id="boardDispatcher"></table>
+
 </div>
 
 <!-- SUPERVISOR -->
