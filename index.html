@@ -2,362 +2,271 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PRTA Driver MDT</title>
+<title>Driver MDT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-/* ================= COLORS ================= */
+/* ====== COLORS (Matched to Trapeze look) ====== */
 :root{
-  --bg-main:#000000;
-  --bg-panel:#0b2a55;
-  --bg-button:#1e5aa8;
-  --bg-button-alt:#153b73;
-  --border:#6fb6ff;
-  --text:#ffffff;
-  --text-dim:#cfe4ff;
-  --ok:#0a7a3a;
-  --warn:#c89b00;
-  --late:#b91c1c;
+  --bg:#071226;
+  --panel:#0b1e3d;
+  --border:#1e88ff;
+  --btn:#0e2f66;
+  --btnText:#eaf2ff;
+  --grey:#7a7f87;
+  --green:#0a5f3b;
+  --red:#7a1f1f;
+  --yellow:#8a6b00;
 }
 
-/* ================= BASE ================= */
-html,body{
+*{box-sizing:border-box;font-family:Segoe UI,Arial}
+body{
   margin:0;
-  padding:0;
-  width:100%;
-  height:100%;
-  background:black;
-  font-family:Arial, Helvetica, sans-serif;
-  color:var(--text);
+  background:var(--bg);
+  color:white;
 }
 
-#mdt{
-  width:100%;
-  height:100%;
-  display:flex;
-  flex-direction:column;
-  background:var(--bg-main);
-}
-
-/* ================= TOP BAR ================= */
-#topBar{
-  height:56px;
-  display:flex;
-  gap:6px;
-  padding:6px;
-  background:#000;
+/* ====== TOP BAR ====== */
+.topbar{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:20px;
+  padding:10px;
   border-bottom:2px solid var(--border);
 }
-
-.topBtn{
-  flex:1;
-  background:linear-gradient(#2b6ecb,#1e4f99);
+.topbtn{
   border:2px solid var(--border);
-  border-radius:0;
-  color:white;
-  font-weight:bold;
-  font-size:14px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  background:var(--btn);
+  padding:12px;
+  text-align:center;
+  font-weight:600;
+  border-radius:6px;
   cursor:pointer;
 }
 
-/* ================= MAIN ================= */
-#main{
-  flex:1;
+/* ====== LAYOUT ====== */
+.main{
   display:grid;
-  grid-template-columns:260px 1fr 320px;
+  grid-template-columns:220px 1fr 260px;
+  height:calc(100vh - 120px);
 }
 
-/* ================= LEFT PANEL ================= */
-#left{
-  background:#020617;
+/* ====== LEFT MENU ====== */
+.left{
   padding:10px;
-  display:grid;
-  grid-template-rows:repeat(6,1fr);
-  gap:8px;
-}
-
-.leftBtn{
-  background:var(--bg-button-alt);
-  border:2px solid var(--border);
-  color:white;
-  font-weight:bold;
   display:flex;
-  align-items:center;
-  justify-content:center;
+  flex-direction:column;
+  gap:12px;
+}
+.leftbtn{
+  border:2px solid var(--border);
+  background:#081a36;
+  padding:20px;
+  text-align:center;
+  border-radius:10px;
+  cursor:pointer;
 }
 
-/* ================= CENTER ================= */
-#center{
-  padding:12px;
+/* ====== CENTER PANEL ====== */
+.center{
+  padding:15px;
+  border-left:2px solid var(--border);
+  border-right:2px solid var(--border);
 }
-
-.audioBox{
+.panel{
+  border:2px solid var(--border);
+  border-radius:10px;
+  padding:15px;
   height:100%;
-  background:#07112b;
+}
+
+/* ====== AUDIO PANEL ====== */
+.audio-btn{
   border:2px solid var(--border);
-  padding:12px;
-}
-
-.audioBox h3{
-  margin:0 0 10px 0;
+  padding:14px;
+  margin:10px 0;
   text-align:center;
+  border-radius:8px;
 }
+.audio-yellow{background:var(--yellow)}
+.audio-blue{background:#0f3c88}
+.audio-green{background:#0b6b43}
+.audio-red{background:#8b1e1e}
 
-.audioRow{
-  display:flex;
-  gap:8px;
-  margin-bottom:8px;
-}
-
-.audioBtn{
-  flex:1;
-  padding:12px;
-  background:var(--bg-button);
-  border:2px solid var(--border);
-  text-align:center;
-  font-weight:bold;
-}
-
-.yellow{background:#c89b00}
-.green{background:#0a7a3a}
-.red{background:#b91c1c}
-
-/* ================= RIGHT SCHEDULE ================= */
-#right{
-  background:#9ca3af;
-  padding:10px;
+/* ====== RIGHT SCHEDULE ====== */
+.schedule{
+  background:var(--grey);
   color:black;
+  padding:10px;
 }
-
-#right h3{
-  margin:4px 0 10px 0;
-  text-align:center;
-}
-
 .stop{
-  background:#e5e7eb;
+  background:white;
+  margin-bottom:8px;
   padding:8px;
-  margin-bottom:6px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-weight:bold;
+  border-radius:6px;
+  font-size:14px;
 }
-
 .stop button{
-  background:#1e5aa8;
-  border:none;
-  color:white;
-  padding:6px 10px;
-  cursor:pointer;
+  margin-top:5px;
+  width:100%;
 }
 
-/* ================= PAGES ================= */
-#pages{
-  display:none;
-  padding:16px;
-  background:#020617;
-  color:white;
-  height:100%;
-}
-
-.page{
-  display:none;
-}
-
-/* ================= BOTTOM BAR ================= */
-#bottomBar{
-  height:40px;
+/* ====== BOTTOM STATUS ====== */
+.statusbar{
+  height:50px;
+  background:var(--green);
   display:flex;
-  justify-content:space-between;
   align-items:center;
-  padding:0 14px;
-  font-weight:bold;
+  justify-content:space-between;
+  padding:0 15px;
+  font-weight:600;
 }
+.status-late{background:var(--red)}
+.status-early{background:#124a9c}
 
-.ok{background:var(--ok)}
-.warn{background:var(--warn)}
-.late{background:var(--late)}
+/* ====== HIDDEN ====== */
+.hidden{display:none}
 </style>
 </head>
 
 <body>
-<div id="mdt">
 
-  <!-- TOP -->
-  <div id="topBar">
-    <div class="topBtn" onclick="openPage('rtt')">RTT</div>
-    <div class="topBtn" onclick="openPage('msg')">MSG</div>
-    <div class="topBtn" onclick="openPage('annc')">ANNC</div>
-    <div class="topBtn" onclick="openPage('menu')">MENU</div>
-    <div class="topBtn" onclick="goHome()">HOME</div>
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <div class="topbtn" onclick="showMode('audio')">RTT</div>
+  <div class="topbtn" onclick="showMode('msg')">MSG</div>
+  <div class="topbtn" onclick="showMode('audio')">ANNC</div>
+  <div class="topbtn" onclick="showMode('menu')">MENU</div>
+  <div class="topbtn" onclick="showMode('home')">HOME</div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="leftbtn">HEADSIGN</div>
+    <div class="leftbtn">CARD INFO</div>
+    <div class="leftbtn">SETUP</div>
+    <div class="leftbtn">MAINT</div>
+    <div class="leftbtn">START SHIFT</div>
+    <div class="leftbtn">LOG OUT</div>
   </div>
 
-  <!-- MAIN -->
-  <div id="main">
-
-    <!-- LEFT -->
-    <div id="left">
-      <div class="leftBtn">HEADSIGN</div>
-      <div class="leftBtn">CARD INFO</div>
-      <div class="leftBtn">SETUP</div>
-      <div class="leftBtn">MAINT</div>
-      <div class="leftBtn" onclick="startShift()">START SHIFT</div>
-      <div class="leftBtn" onclick="endShift()">LOG OUT</div>
-    </div>
-
-    <!-- CENTER -->
-    <div id="center">
-      <div class="audioBox">
-        <h3>AUDIO</h3>
-        <div class="audioRow">
-          <div class="audioBtn yellow">HALT ANNOUNCE</div>
-        </div>
-        <div class="audioRow">
-          <div class="audioBtn">EXT SPKR</div>
-        </div>
-        <div class="audioRow">
-          <div class="audioBtn green">ON</div>
-          <div class="audioBtn red">OFF</div>
-          <div class="audioBtn">LOOP</div>
-        </div>
+  <!-- CENTER -->
+  <div class="center">
+    <div class="panel" id="audioPanel">
+      <h3 style="text-align:center">AUDIO</h3>
+      <div class="audio-btn audio-yellow">HALT ANNOUNCE</div>
+      <div class="audio-btn audio-blue">EXT SPKR</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div class="audio-btn audio-green">ON</div>
+        <div class="audio-btn audio-red">OFF</div>
+        <div class="audio-btn audio-blue">LOOP</div>
       </div>
     </div>
 
-    <!-- RIGHT -->
-    <div id="right">
-      <h3>SCHEDULE</h3>
-      <div id="schedulePanel"></div>
+    <div class="panel hidden" id="msgPanel">
+      <h3>Messages</h3>
+      <p>(Placeholder)</p>
     </div>
 
-  </div>
-
-  <!-- PAGES -->
-  <div id="pages">
-    <div id="page-rtt" class="page">
-      <h2>RTT</h2>
-      <p>Two-way radio screen</p>
-    </div>
-    <div id="page-msg" class="page">
-      <h2>Messages</h2>
-      <p>Driver ↔ Dispatch messages</p>
-    </div>
-    <div id="page-annc" class="page">
-      <h2>Announcements</h2>
-      <p>Announcement buttons</p>
-    </div>
-    <div id="page-menu" class="page">
-      <h2>Menu</h2>
-      <p>Additional options</p>
+    <div class="panel hidden" id="menuPanel">
+      <h3>Menu</h3>
     </div>
   </div>
 
-  <!-- BOTTOM -->
-  <div id="bottomBar" class="ok">
-    <span id="statusText">SYSTEMS OK</span>
-    <span id="clock">--:--</span>
+  <!-- RIGHT SCHEDULE -->
+  <div class="schedule" id="schedulePanel">
+    <h3 style="text-align:center">SCHEDULE</h3>
   </div>
 
 </div>
 
+<!-- ===== STATUS BAR ===== -->
+<div class="statusbar" id="statusBar">
+  <span id="statusText">SYSTEMS OK</span>
+  <span id="clock"></span>
+</div>
+
 <script>
-/* ===== CLOCK ===== */
-setInterval(()=>{
-  clock.innerText=new Date().toLocaleTimeString([],{
-    hour:'2-digit',minute:'2-digit'
-  });
-},1000);
+/* ===== DEMO SCHEDULE ===== */
+let schedule = [
+  {stop:"Terminal", time:"20:30", arrived:false},
+  {stop:"Main St", time:"20:40", arrived:false},
+  {stop:"Depot", time:"20:55", arrived:false}
+];
 
-/* ===== NAV ===== */
-function openPage(name){
-  document.getElementById("main").style.display="none";
-  pages.style.display="block";
-  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
-  document.getElementById("page-"+name).style.display="block";
-}
-function goHome(){
-  pages.style.display="none";
-  main.style.display="grid";
+/* ===== UI ===== */
+function showMode(mode){
+  audioPanel.classList.add("hidden");
+  msgPanel.classList.add("hidden");
+  menuPanel.classList.add("hidden");
+  if(mode==="audio") audioPanel.classList.remove("hidden");
+  if(mode==="msg") msgPanel.classList.remove("hidden");
+  if(mode==="menu") menuPanel.classList.remove("hidden");
 }
 
-/* ===== SAMPLE TRIP ===== */
-let trip=[];
-let active=false;
-
-function startShift(){
-  if(active) return;
-  active=true;
-  trip=[
-    {stop:"Terminal",time:"15:30",arrived:false},
-    {stop:"Main St",time:"15:45",arrived:false},
-    {stop:"Depot",time:"16:00",arrived:false}
-  ];
-  renderSchedule();
-}
-
-function endShift(){
-  active=false;
-  trip=[];
-  renderSchedule();
-  statusText.innerText="SYSTEMS OK";
-  bottomBar.className="ok";
-}
-
-/* ===== SCHEDULE ===== */
+/* ===== SCHEDULE RENDER ===== */
 function renderSchedule(){
-  schedulePanel.innerHTML="";
-  if(trip.length===0){
-    schedulePanel.innerHTML="<p style='text-align:center'>No Active Trip</p>";
-    return;
-  }
-  trip.forEach((p,i)=>{
-    if(p.arrived) return;
+  schedulePanel.innerHTML="<h3 style='text-align:center'>SCHEDULE</h3>";
+  schedule.forEach((s,i)=>{
     const d=document.createElement("div");
     d.className="stop";
-    d.innerHTML=`${p.stop} ${p.time}
-      <button onclick="arrive(${i})">Arrived</button>`;
+    d.innerHTML=`
+      <b>${s.stop}</b><br>
+      ${s.time}<br>
+      ${s.arrived?"✔ Arrived":`<button onclick="arrive(${i})">Arrived</button>`}
+    `;
     schedulePanel.appendChild(d);
   });
 }
 
+/* ===== ARRIVAL ===== */
 function arrive(i){
-  trip[i].arrived=true;
+  schedule[i].arrived=true;
+  if(schedule.every(s=>s.arrived)){
+    schedule=[];
+    schedulePanel.innerHTML="<h3>NO ACTIVE TRIP</h3>";
+  }
   renderSchedule();
-  if(trip.every(p=>p.arrived)){
-    trip=[];
+}
+
+/* ===== LATENESS CALC ===== */
+function updateStatus(){
+  const now=new Date();
+  clock.innerText=now.toLocaleTimeString();
+
+  const next=schedule.find(s=>!s.arrived);
+  if(!next){
     statusText.innerText="SYSTEMS OK";
-    bottomBar.className="ok";
+    statusBar.className="statusbar";
+    return;
+  }
+
+  const [h,m]=next.time.split(":").map(Number);
+  const sched=new Date();
+  sched.setHours(h,m,0,0);
+  const diff=Math.round((now-sched)/60000);
+
+  if(diff>1){
+    statusText.innerText=`LATE ${diff} MIN`;
+    statusBar.className="statusbar status-late";
+  }else if(diff<-1){
+    statusText.innerText=`EARLY ${Math.abs(diff)} MIN`;
+    statusBar.className="statusbar status-early";
+  }else{
+    statusText.innerText="ON TIME";
+    statusBar.className="statusbar";
   }
 }
 
-/* ===== LATENESS ===== */
-setInterval(()=>{
-  if(trip.length===0){
-    statusText.innerText="SYSTEMS OK";
-    bottomBar.className="ok";
-    return;
-  }
-  const next=trip.find(p=>!p.arrived);
-  if(!next) return;
-  const [h,m]=next.time.split(":").map(Number);
-  const sched=new Date(); sched.setHours(h,m,0,0);
-  const diff=Math.round((new Date()-sched)/60000);
-  if(diff<=0){
-    statusText.innerText="ON TIME";
-    bottomBar.className="ok";
-  }else if(diff<=2){
-    statusText.innerText=`LATE ${diff} MIN`;
-    bottomBar.className="warn";
-  }else{
-    statusText.innerText=`LATE ${diff} MIN`;
-    bottomBar.className="late";
-  }
-},30000);
+/* ===== INIT ===== */
+renderSchedule();
+setInterval(updateStatus,1000);
 </script>
 
 </body>
-</html>  
+</html>
 
 
