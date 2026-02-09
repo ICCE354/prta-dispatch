@@ -2,316 +2,184 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PRTA MDT System</title>
+<title>PRTA MDT</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-/* ===== COLORS ===== */
-:root{
-  --baby:#9fd3ff;
-  --dark:#0b2e63;
-  --btn:#123d7a;
-  --border:#5fb0ff;
-  --green:#0f7a3c;
-  --red:#b91c1c;
-  --white:#ffffff;
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #9fd3ff;
+  color: white;
 }
-
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:var(--baby);
-  color:var(--white);
-}
-
-button, select, input{
-  background:var(--btn);
-  border:2px solid var(--border);
-  color:white;
-  padding:8px;
-  font-weight:bold;
-}
-
-button{cursor:pointer}
-
-.hidden{display:none}
 
 /* ===== LOGIN ===== */
-#loginPage{
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-.loginBox{
-  background:var(--dark);
-  padding:25px;
-  width:320px;
-  border-radius:8px;
-}
-.loginBox h2{text-align:center}
-.loginBox input{
-  width:100%;
-  margin:8px 0;
-  background:#fff;
-  color:#000;
+#loginPage {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* ===== TOP BAR ===== */
-.topBar{
-  background:var(--dark);
-  padding:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+.loginBox {
+  width: 360px;
+  padding: 30px;
+  background: #0b2e63;
+  border-radius: 10px;
 }
 
-/* ===== DRIVER LAYOUT ===== */
-.main{
-  display:flex;
-  height:calc(100vh - 110px);
-}
-.sideBar{
-  width:200px;
-  background:var(--dark);
-  padding:10px;
-}
-.sideBtn{
-  width:100%;
-  margin-bottom:10px;
-}
-.content{
-  flex:1;
-  padding:15px;
-  background:#0a2a5c;
-}
-.panel{
-  background:#103b7a;
-  border:2px solid var(--border);
-  padding:10px;
-}
-.systemBar{
-  height:40px;
-  background:var(--green);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:0 15px;
-  font-weight:bold;
-}
-.systemBar.late{background:var(--red)}
-
-/* ===== TABLE ===== */
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-th,td{
-  border:1px solid var(--border);
-  padding:6px;
-  text-align:center;
-}
-th{background:var(--btn)}
-.arriveBtn{
-  background:#1d4ed8;
-  border:1px solid var(--border);
+.loginBox h2 {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-/* ===== DISPATCHER ===== */
-.dispatchGrid{
-  display:grid;
-  grid-template-columns:300px 1fr;
-  gap:15px;
+.loginBox input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 12px;
+  font-size: 16px;
 }
-.dispatchBox{
-  background:var(--dark);
-  padding:10px;
-  border:2px solid var(--border);
+
+.loginBox button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  background: #1e88e5;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
 }
-.dispatchBox input, .dispatchBox select{
-  width:100%;
-  margin:6px 0;
-  background:#fff;
-  color:#000;
+
+/* ===== PAGES ===== */
+.page {
+  display: none;
+  padding: 20px;
+}
+
+.topBar {
+  background: #0b2e63;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+button.logout {
+  background: #b91c1c;
+  border: none;
+  padding: 10px 16px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ===== CONTENT ===== */
+.content {
+  padding: 20px;
+  background: #0a2a5c;
+  min-height: calc(100vh - 64px);
 }
 </style>
 </head>
 
 <body>
 
-<!-- ========== LOGIN ========== -->
+<!-- ================= LOGIN ================= -->
 <div id="loginPage">
   <div class="loginBox">
     <h2>PRTA Login</h2>
-    <input id="user" placeholder="Username">
-    <input id="pass" type="password" placeholder="Password">
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
     <button onclick="login()">LOGIN</button>
   </div>
 </div>
 
-<!-- ========== DRIVER ========== -->
-<div id="driverPage" class="hidden">
+<!-- ================= DRIVER ================= -->
+<div id="driverPage" class="page">
   <div class="topBar">
     <strong>DRIVER MDT</strong>
-    <button onclick="logout()">LOGOUT</button>
+    <button class="logout" onclick="logout()">LOG OUT</button>
   </div>
-
-  <div class="main">
-    <div class="sideBar">
-      <button class="sideBtn">HEADSIGN</button>
-      <button class="sideBtn">CARD INFO</button>
-      <button class="sideBtn">SETUP</button>
-      <button class="sideBtn">MAINT</button>
-    </div>
-
-    <div class="content">
-      <div class="panel">
-        <h3>SCHEDULE</h3>
-        <table id="driverTable"></table>
-      </div>
-    </div>
-  </div>
-
-  <div id="systemBar" class="systemBar">
-    <span id="statusText">SYSTEMS OK</span>
-    <span id="clock"></span>
+  <div class="content">
+    <h3>Driver screen loaded</h3>
+    <p>If you see this, driver login works.</p>
   </div>
 </div>
 
-<!-- ========== DISPATCHER ========== -->
-<div id="dispatcherPage" class="hidden">
+<!-- ================= DISPATCHER ================= -->
+<div id="dispatcherPage" class="page">
   <div class="topBar">
     <strong>DISPATCHER</strong>
-    <button onclick="logout()">LOGOUT</button>
+    <button class="logout" onclick="logout()">LOG OUT</button>
   </div>
-
   <div class="content">
-    <div class="dispatchGrid">
+    <h3>Dispatcher screen loaded</h3>
+    <p>If you see this, dispatcher login works.</p>
+  </div>
+</div>
 
-      <div class="dispatchBox">
-        <h3>Create Schedule</h3>
-
-        <label>Driver</label>
-        <select id="dDriver">
-          <option value="">Select Driver</option>
-          <option value="3675">3675</option>
-          <option value="3804">3804</option>
-        </select>
-
-        <label>Stop Name</label>
-        <input id="dStop">
-
-        <label>Time (HH:MM)</label>
-        <input id="dTime">
-
-        <button onclick="addStop()">Add Stop</button>
-        <button onclick="assignSchedule()">Assign Schedule</button>
-      </div>
-
-      <div class="dispatchBox">
-        <h3>Live Board</h3>
-        <table id="dispatchBoard"></table>
-      </div>
-
-    </div>
+<!-- ================= SUPERVISOR ================= -->
+<div id="supervisorPage" class="page">
+  <div class="topBar">
+    <strong>SUPERVISOR</strong>
+    <button class="logout" onclick="logout()">LOG OUT</button>
+  </div>
+  <div class="content">
+    <h3>Supervisor screen loaded</h3>
+    <p>If you see this, supervisor login works.</p>
   </div>
 </div>
 
 <script>
 /* ===== USERS ===== */
-const users={
-  dispatcher:{pass:"admin",role:"dispatcher"},
-  "3675":{pass:"SR",role:"driver"},
-  "3804":{pass:"ER",role:"driver"}
+const users = {
+  "3675": { password: "SR", role: "driver" },
+  "3804": { password: "ER", role: "driver" },
+  "dispatcher": { password: "admin", role: "dispatcher" },
+  "supervisor": { password: "super", role: "supervisor" }
 };
 
-let currentUser=null;
-let schedules={};
-let tempStops=[];
-
 /* ===== LOGIN ===== */
-function login(){
-  const u=user.value.trim();
-  const p=pass.value.trim();
-  if(!users[u]||users[u].pass!==p){
-    alert("Invalid login"); return;
+function login() {
+  const u = document.getElementById("username").value.trim();
+  const p = document.getElementById("password").value.trim();
+
+  if (!users[u]) {
+    alert("Invalid username");
+    return;
   }
-  currentUser={name:u,role:users[u].role};
-  loginPage.classList.add("hidden");
-  if(currentUser.role==="driver") driverPage.classList.remove("hidden");
-  if(currentUser.role==="dispatcher") dispatcherPage.classList.remove("hidden");
-  renderDriver();
-  renderBoard();
+
+  if (users[u].password !== p) {
+    alert("Invalid password");
+    return;
+  }
+
+  document.getElementById("loginPage").style.display = "none";
+
+  if (users[u].role === "driver") {
+    document.getElementById("driverPage").style.display = "block";
+  }
+
+  if (users[u].role === "dispatcher") {
+    document.getElementById("dispatcherPage").style.display = "block";
+  }
+
+  if (users[u].role === "supervisor") {
+    document.getElementById("supervisorPage").style.display = "block";
+  }
 }
 
-function logout(){location.reload();}
-
-/* ===== DISPATCHER ===== */
-function addStop(){
-  if(!dStop.value||!dTime.value)return;
-  tempStops.push({stop:dStop.value,time:dTime.value,arrived:false});
-  dStop.value=""; dTime.value="";
+/* ===== LOGOUT ===== */
+function logout() {
+  location.reload();
 }
-
-function assignSchedule(){
-  if(!dDriver.value||tempStops.length===0)return;
-  schedules[dDriver.value]=JSON.parse(JSON.stringify(tempStops));
-  tempStops=[];
-  renderBoard();
-}
-
-/* ===== DRIVER ===== */
-function renderDriver(){
-  if(!currentUser||currentUser.role!=="driver")return;
-  driverTable.innerHTML="<tr><th>STOP</th><th>TIME</th><th>STATUS</th></tr>";
-  const list=schedules[currentUser.name]||[];
-  list.forEach((s,i)=>{
-    const r=driverTable.insertRow();
-    r.insertCell().innerText=s.stop;
-    r.insertCell().innerText=s.time;
-    const c=r.insertCell();
-    if(!s.arrived){
-      c.innerHTML=`<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
-    }else c.innerText=s.status;
-  });
-}
-
-function arrive(i){
-  const list=schedules[currentUser.name];
-  const s=list[i];
-  const now=new Date();
-  const [h,m]=s.time.split(":").map(Number);
-  const sched=new Date();sched.setHours(h,m,0,0);
-  const diff=Math.round((now-sched)/60000);
-  s.arrived=true;
-  s.status=diff>1?`LATE +${diff} MIN`:diff<-1?`EARLY ${-diff} MIN`:"ON TIME";
-  if(list.every(x=>x.arrived)) schedules[currentUser.name]=[];
-  renderDriver();
-  renderBoard();
-}
-
-/* ===== BOARD ===== */
-function renderBoard(){
-  dispatchBoard.innerHTML="<tr><th>Driver</th><th>Status</th></tr>";
-  Object.keys(schedules).forEach(d=>{
-    const r=dispatchBoard.insertRow();
-    r.insertCell().innerText=d;
-    const next=schedules[d].find(s=>!s.arrived);
-    if(!next){r.insertCell().innerText="Complete";return;}
-    const [h,m]=next.time.split(":").map(Number);
-    const sched=new Date();sched.setHours(h,m,0,0);
-    const diff=Math.round((new Date()-sched)/60000);
-    r.insertCell().innerText=diff>1?`Late ${diff} min`:"On time";
-  });
-}
-
-/* ===== CLOCK ===== */
-setInterval(()=>clock.innerText=new Date().toLocaleTimeString(),1000);
 </script>
 
 </body>
 </html>
+
 
 
