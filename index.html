@@ -1,181 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Driver MDT</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-/* ===== COLOR MATCH (FROM PHOTO) ===== */
-:root{
-  --bg:#8ec5ff;            /* baby blue background */
-  --panel:#0b2c6d;         /* dark blue panels */
-  --border:#7dd3fc;        /* light blue border */
-  --btn:#123c8a;           /* button blue */
-  --white:#f8fafc;
-  --red:#b91c1c;
-  --green:#15803d;
-}
-
-body{
-  margin:0;
-  background:var(--bg);
-  font-family:Arial, Helvetica, sans-serif;
-  color:var(--white);
-}
-
-/* ===== TOP BAR ===== */
-.topbar{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:10px;
-  padding:10px;
-}
-.topbtn{
-  background:var(--btn);
-  border:2px solid var(--border);
-  border-radius:6px;
-  padding:10px;
-  text-align:center;
-  font-weight:bold;
-}
-
-/* ===== MAIN LAYOUT ===== */
-.main{
-  display:grid;
-  grid-template-columns:220px 1fr;
-  height:calc(100vh - 110px);
-}
-
-/* ===== LEFT BUTTON STACK ===== */
-.left{
-  padding:10px;
-  display:grid;
-  gap:10px;
-}
-.leftbtn{
-  background:var(--btn);
-  border:2px solid var(--border);
-  border-radius:8px;
-  padding:18px;
-  text-align:center;
-  font-weight:bold;
-}
-
-/* ===== CENTER SCHEDULE ===== */
-.center{
-  padding:10px;
-}
-.schedule{
-  height:100%;
-  background:var(--panel);
-  border:2px solid var(--border);
-  border-radius:12px;
-  padding:10px;
-}
-.schedule h2{
-  margin:0 0 10px 0;
-  text-align:center;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-th,td{
-  border:1px solid var(--border);
-  padding:6px;
-  text-align:center;
-}
-th{
-  background:#123c8a;
-}
-
-/* ===== FOOTER STATUS BAR ===== */
-.footer{
-  height:40px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:0 12px;
-  font-weight:bold;
-  background:var(--green);
-}
-.footer.late{
-  background:var(--red);
-}
-</style>
-</head>
-
-<body>
-
-<!-- ===== TOP BUTTONS ===== -->
-<div class="topbar">
-  <div class="topbtn">RTT</div>
-  <div class="topbtn">MSG</div>
-  <div class="topbtn">ANNC</div>
-  <div class="topbtn">MENU</div>
-  <div class="topbtn">HOME</div>
-</div>
-
-<!-- ===== MAIN ===== -->
-<div class="main">
-
-  <!-- LEFT -->
-  <div class="left">
-    <div class="leftbtn">HEADSIGN</div>
-    <div class="leftbtn">CARD INFO</div>
-    <div class="leftbtn">SETUP</div>
-    <div class="leftbtn">MAINT</div>
-    <div class="leftbtn">START SHIFT</div>
-    <div class="leftbtn">LOG OUT</div>
-  </div>
-
-  <!-- CENTER -->
-  <div class="center">
-    <div class="schedule">
-      <h2>SCHEDULE</h2>
-      <table id="sched">
-        <tr>
-          <th>STOP</th>
-          <th>TIME</th>
-          <th>STATUS</th>
-        </tr>
-        <tr>
-          <td>Main St</td>
-          <td>08:30</td>
-          <td>Pending</td>
-        </tr>
-        <tr>
-          <td>Broadway</td>
-          <td>08:42</td>
-          <td>Pending</td>
-        </tr>
-      </table>
-    </div>
-  </div>
-
-</div>
-
-<!-- ===== FOOTER ===== -->
-<div id="footer" class="footer">
-  <div id="statusText">SYSTEMS OK</div>
-  <div id="clock"></div>
-</div>
-
 <script>
-/* ===== CLOCK ===== */
-function updateClock(){
-  clock.innerText = new Date().toLocaleTimeString([],{
-    hour:'2-digit',minute:'2-digit'
+const scheduleData = [
+  { stop:"Main St", time:"08:30", arrived:false },
+  { stop:"Broadway", time:"08:42", arrived:false }
+];
+
+function renderSchedule(){
+  const t = document.getElementById("sched");
+  t.innerHTML = `
+    <tr>
+      <th>STOP</th>
+      <th>TIME</th>
+      <th>STATUS</th>
+    </tr>
+  `;
+
+  scheduleData.forEach((s,i)=>{
+    const r = t.insertRow();
+    r.insertCell().innerText = s.stop;
+    r.insertCell().innerText = s.time;
+
+    const statusCell = r.insertCell();
+
+    if(!s.arrived){
+      statusCell.innerHTML =
+        `<button style="width:100%;padding:6px"
+          onclick="arrive(${i})">ARRIVED</button>`;
+    } else {
+      statusCell.innerText = s.statusText;
+    }
   });
 }
-setInterval(updateClock,1000);updateClock();
 
-/* ===== REAL LATENESS (NEXT STOP) ===== */
-function latenessCheck(){
-  const nextStopTime = "08:30";
-  const [h,m] = nextStopTime.split(":").map(Number);
+function arrive(index){
+  const s = scheduleData[index];
 
+  const now = new Date();
+  const [h,m] = s.time.split(":").map(Number);
+  const sched = new Date();
+  sched.setHours(h,m,0,0);
+
+  const diff = Math.round((now - sched) / 60000);
+
+  let status = "ON TIME";
+  if(diff > 1) status = `LATE +${diff} MIN`;
+  if(diff < -1) status = `EARLY ${Math.abs(diff)} MIN`;
+
+  s.arrived = true;
+  s.statusText = status;
+
+  renderSchedule();
+  updateFooter();
+}
+
+function updateFooter(){
+  const next = scheduleData.find(s=>!s.arrived);
+  if(!next){
+    footer.classList.remove("late");
+    statusText.innerText = "TRIP COMPLETE";
+    return;
+  }
+
+  const [h,m] = next.time.split(":").map(Number);
   const sched = new Date();
   sched.setHours(h,m,0,0);
 
@@ -190,11 +75,9 @@ function latenessCheck(){
     statusText.innerText = "SYSTEMS OK";
   }
 }
-setInterval(latenessCheck,5000);
-latenessCheck();
-</script>
 
-</body>
-</html>
+renderSchedule();
+setInterval(updateFooter,5000);
+</script>
 
 
