@@ -7,10 +7,10 @@
 
 <style>
 :root{
-  --bg:#8ec5ff;         /* baby blue */
-  --panel:#0b2c6d;      /* dark panel */
-  --btn:#123c8a;        /* button blue */
-  --border:#7dd3fc;     /* light blue border */
+  --bg:#9ad1ff;
+  --panel:#0b2c6d;
+  --btn:#123c8a;
+  --border:#7dd3fc;
   --white:#f8fafc;
   --red:#b91c1c;
   --green:#15803d;
@@ -37,6 +37,7 @@ body{
   padding:10px;
   text-align:center;
   font-weight:bold;
+  cursor:pointer;
 }
 
 /* MAIN */
@@ -59,24 +60,21 @@ body{
   padding:18px;
   text-align:center;
   font-weight:bold;
+  cursor:pointer;
 }
 
-/* CENTER */
-.center{
-  padding:10px;
-}
-.schedule{
+/* PANELS */
+.panel{
+  display:none;
   height:100%;
   background:var(--panel);
   border:2px solid var(--border);
   border-radius:12px;
   padding:10px;
 }
-.schedule h2{
-  margin:0 0 10px;
-  text-align:center;
-}
+.panel.active{display:block}
 
+/* SCHEDULE */
 table{
   width:100%;
   border-collapse:collapse;
@@ -86,11 +84,8 @@ th,td{
   padding:6px;
   text-align:center;
 }
-th{
-  background:var(--btn);
-}
+th{background:var(--btn)}
 
-/* ARRIVED BUTTON */
 .arriveBtn{
   width:100%;
   padding:6px;
@@ -112,9 +107,7 @@ th{
   font-weight:bold;
   background:var(--green);
 }
-.footer.late{
-  background:var(--red);
-}
+.footer.late{background:var(--red)}
 </style>
 </head>
 
@@ -122,11 +115,11 @@ th{
 
 <!-- TOP -->
 <div class="topbar">
-  <div class="topbtn">RTT</div>
-  <div class="topbtn">MSG</div>
-  <div class="topbtn">ANNC</div>
-  <div class="topbtn">MENU</div>
-  <div class="topbtn">HOME</div>
+  <div class="topbtn" onclick="showPanel('schedulePanel')">HOME</div>
+  <div class="topbtn" onclick="showPanel('rttPanel')">RTT</div>
+  <div class="topbtn" onclick="showPanel('msgPanel')">MSG</div>
+  <div class="topbtn" onclick="showPanel('anncPanel')">ANNC</div>
+  <div class="topbtn" onclick="showPanel('menuPanel')">MENU</div>
 </div>
 
 <!-- MAIN -->
@@ -134,22 +127,51 @@ th{
 
   <!-- LEFT -->
   <div class="left">
-    <div class="leftbtn">HEADSIGN</div>
-    <div class="leftbtn">CARD INFO</div>
-    <div class="leftbtn">SETUP</div>
-    <div class="leftbtn">MAINT</div>
+    <div class="leftbtn" onclick="showPanel('schedulePanel')">HEADSIGN</div>
+    <div class="leftbtn" onclick="showPanel('msgPanel')">CARD INFO</div>
+    <div class="leftbtn" onclick="showPanel('menuPanel')">SETUP</div>
+    <div class="leftbtn" onclick="showPanel('menuPanel')">MAINT</div>
     <div class="leftbtn">START SHIFT</div>
     <div class="leftbtn">LOG OUT</div>
   </div>
 
   <!-- CENTER -->
   <div class="center">
-    <div class="schedule">
-      <h2>SCHEDULE</h2>
+
+    <!-- SCHEDULE -->
+    <div id="schedulePanel" class="panel active">
+      <h2 style="text-align:center">SCHEDULE</h2>
       <table id="sched"></table>
     </div>
-  </div>
 
+    <!-- RTT -->
+    <div id="rttPanel" class="panel">
+      <h2>RTT – Two Way Radio</h2>
+      <p>Radio connected.</p>
+      <button class="arriveBtn">Call Dispatch</button>
+    </div>
+
+    <!-- MSG -->
+    <div id="msgPanel" class="panel">
+      <h2>Messages</h2>
+      <p>No new messages.</p>
+    </div>
+
+    <!-- ANNOUNCEMENTS -->
+    <div id="anncPanel" class="panel">
+      <h2>Announcements</h2>
+      <button class="arriveBtn">Please move to rear of bus</button>
+      <button class="arriveBtn">Do not talk to operator</button>
+      <button class="arriveBtn">Accessible seating reminder</button>
+    </div>
+
+    <!-- MENU -->
+    <div id="menuPanel" class="panel">
+      <h2>System Menu</h2>
+      <p>Diagnostics OK</p>
+    </div>
+
+  </div>
 </div>
 
 <!-- FOOTER -->
@@ -167,6 +189,12 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
+/* PANEL SWITCHING */
+function showPanel(id){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
 /* SCHEDULE DATA */
 const scheduleData = [
   { stop:"Main St", time:"08:30", arrived:false },
@@ -176,45 +204,35 @@ const scheduleData = [
 function renderSchedule(){
   const t = document.getElementById("sched");
   t.innerHTML = `
-    <tr>
-      <th>STOP</th>
-      <th>TIME</th>
-      <th>STATUS</th>
-    </tr>
+    <tr><th>STOP</th><th>TIME</th><th>STATUS</th></tr>
   `;
-
   scheduleData.forEach((s,i)=>{
     const r = t.insertRow();
     r.insertCell().innerText = s.stop;
     r.insertCell().innerText = s.time;
-
-    const statusCell = r.insertCell();
-
+    const c = r.insertCell();
     if(!s.arrived){
-      statusCell.innerHTML =
+      c.innerHTML =
         `<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
     } else {
-      statusCell.innerText = s.statusText;
+      c.innerText = s.statusText;
     }
   });
 }
 
-function arrive(index){
-  const s = scheduleData[index];
-
+function arrive(i){
+  const s = scheduleData[i];
   const now = new Date();
   const [h,m] = s.time.split(":").map(Number);
-  const sched = new Date();
-  sched.setHours(h,m,0,0);
-
+  const sched = new Date(); sched.setHours(h,m,0,0);
   const diff = Math.round((now - sched)/60000);
 
-  let text = "ON TIME";
-  if(diff > 1) text = `LATE +${diff} MIN`;
-  if(diff < -1) text = `EARLY ${Math.abs(diff)} MIN`;
+  let text="ON TIME";
+  if(diff>1) text=`LATE +${diff} MIN`;
+  if(diff<-1) text=`EARLY ${Math.abs(diff)} MIN`;
 
-  s.arrived = true;
-  s.statusText = text;
+  s.arrived=true;
+  s.statusText=text;
 
   renderSchedule();
   updateFooter();
@@ -224,22 +242,19 @@ function updateFooter(){
   const next = scheduleData.find(s=>!s.arrived);
   if(!next){
     footer.classList.remove("late");
-    statusText.innerText = "TRIP COMPLETE";
+    statusText.innerText="TRIP COMPLETE";
     return;
   }
-
   const [h,m] = next.time.split(":").map(Number);
-  const sched = new Date();
-  sched.setHours(h,m,0,0);
-
+  const sched = new Date(); sched.setHours(h,m,0,0);
   const diff = Math.round((new Date()-sched)/60000);
 
-  if(diff > 1){
+  if(diff>1){
     footer.classList.add("late");
-    statusText.innerText = `LATE ${diff} MIN`;
+    statusText.innerText=`LATE ${diff} MIN`;
   } else {
     footer.classList.remove("late");
-    statusText.innerText = "SYSTEMS OK";
+    statusText.innerText="SYSTEMS OK";
   }
 }
 
@@ -249,4 +264,5 @@ setInterval(updateFooter,5000);
 
 </body>
 </html>
+
 
