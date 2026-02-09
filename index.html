@@ -2,22 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Driver MDT</title>
+<title>PRTA MDT System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+/* ========== COLORS ========== */
 :root{
   --baby:#9ad1ff;
   --dark:#0b2c6d;
   --btn:#123c8a;
   --border:#7dd3fc;
   --white:#f8fafc;
-  --red:#b91c1c;
   --green:#15803d;
+  --red:#b91c1c;
 }
 
 *{box-sizing:border-box}
-
 body{
   margin:0;
   background:var(--baby);
@@ -25,73 +25,87 @@ body{
   color:var(--white);
 }
 
-/* ================= TOP BAR ================= */
+/* ========== LOGIN ========== */
+#login{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.loginBox{
+  background:var(--dark);
+  border:3px solid var(--border);
+  padding:30px;
+  width:320px;
+}
+.loginBox h2{text-align:center}
+.loginBox input,select,button{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  font-weight:bold;
+}
+.loginBox button{
+  background:var(--btn);
+  color:white;
+  border:2px solid var(--border);
+  cursor:pointer;
+}
+
+/* ========== TOP BAR ========== */
 .topbar{
   display:flex;
   gap:10px;
   padding:10px;
-  z-index:10;
-  position:relative;
 }
 .topbtn{
   flex:1;
   background:var(--btn);
   border:2px solid var(--border);
-  border-radius:6px;
-  padding:12px;
+  padding:10px;
   text-align:center;
   font-weight:bold;
   cursor:pointer;
-  pointer-events:auto;
 }
 
-/* ================= MAIN ================= */
+/* ========== MAIN LAYOUT ========== */
 .main{
   display:flex;
   height:calc(100vh - 110px);
 }
 
-/* ================= LEFT ================= */
+/* ========== LEFT ========== */
 .left{
   width:220px;
   padding:10px;
   display:flex;
   flex-direction:column;
   gap:10px;
-  z-index:5;
 }
 .leftbtn{
   background:var(--btn);
   border:2px solid var(--border);
-  border-radius:8px;
   padding:18px;
   text-align:center;
   font-weight:bold;
   cursor:pointer;
-  pointer-events:auto;
 }
 
-/* ================= CENTER ================= */
+/* ========== CENTER PANELS ========== */
 .center{
   flex:1;
   padding:10px;
-  z-index:1;
 }
-
-/* ================= PANELS ================= */
 .panel{
   display:none;
   height:100%;
   background:var(--dark);
   border:2px solid var(--border);
-  border-radius:12px;
   padding:10px;
 }
-.panel.active{
-  display:block;
-}
+.panel.active{display:block}
 
-/* ================= TABLE ================= */
+/* ========== TABLE ========== */
 table{
   width:100%;
   border-collapse:collapse;
@@ -104,18 +118,16 @@ th,td{
 th{background:var(--btn)}
 
 .arriveBtn{
-  padding:8px;
   width:100%;
+  padding:8px;
   background:#1d4ed8;
   border:1px solid var(--border);
   color:white;
   font-weight:bold;
-  border-radius:4px;
   cursor:pointer;
-  pointer-events:auto;
 }
 
-/* ================= FOOTER ================= */
+/* ========== FOOTER ========== */
 .footer{
   height:40px;
   display:flex;
@@ -131,82 +143,113 @@ th{background:var(--btn)}
 
 <body>
 
-<!-- TOP -->
-<div class="topbar">
-  <div class="topbtn" onclick="showPanel('schedulePanel')">HOME</div>
-  <div class="topbtn" onclick="showPanel('rttPanel')">RTT</div>
-  <div class="topbtn" onclick="showPanel('msgPanel')">MSG</div>
-  <div class="topbtn" onclick="showPanel('anncPanel')">ANNC</div>
-  <div class="topbtn" onclick="showPanel('menuPanel')">MENU</div>
-</div>
-
-<!-- MAIN -->
-<div class="main">
-
-  <!-- LEFT -->
-  <div class="left">
-    <div class="leftbtn" onclick="showPanel('schedulePanel')">HEADSIGN</div>
-    <div class="leftbtn" onclick="showPanel('msgPanel')">CARD INFO</div>
-    <div class="leftbtn" onclick="showPanel('menuPanel')">SETUP</div>
-    <div class="leftbtn" onclick="showPanel('menuPanel')">MAINT</div>
-    <div class="leftbtn" onclick="alert('Shift Started')">START SHIFT</div>
-    <div class="leftbtn" onclick="alert('Logged Out')">LOG OUT</div>
-  </div>
-
-  <!-- CENTER -->
-  <div class="center">
-
-    <!-- SCHEDULE -->
-    <div id="schedulePanel" class="panel active">
-      <h2 style="text-align:center">SCHEDULE</h2>
-      <table id="sched"></table>
-    </div>
-
-    <!-- RTT -->
-    <div id="rttPanel" class="panel">
-      <h2>RTT – Two Way Radio</h2>
-      <button class="arriveBtn" onclick="alert('Dispatch Called')">
-        Call Dispatch
-      </button>
-    </div>
-
-    <!-- MSG -->
-    <div id="msgPanel" class="panel">
-      <h2>Messages</h2>
-      <p>No new messages.</p>
-    </div>
-
-    <!-- ANNOUNCEMENTS -->
-    <div id="anncPanel" class="panel">
-      <h2>Announcements</h2>
-      <button class="arriveBtn">Move to rear of bus</button>
-      <button class="arriveBtn">Do not talk to operator</button>
-      <button class="arriveBtn">Accessible seating reminder</button>
-    </div>
-
-    <!-- MENU -->
-    <div id="menuPanel" class="panel">
-      <h2>System Menu</h2>
-      <p>All systems operational</p>
-    </div>
-
+<!-- LOGIN -->
+<div id="login">
+  <div class="loginBox">
+    <h2>PRTA Login</h2>
+    <select id="role">
+      <option value="driver">Driver</option>
+      <option value="dispatcher">Dispatcher</option>
+      <option value="supervisor">Supervisor</option>
+    </select>
+    <input id="user" placeholder="Username">
+    <input id="pass" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
   </div>
 </div>
 
-<!-- FOOTER -->
-<div id="footer" class="footer">
-  <div id="statusText">SYSTEMS OK</div>
-  <div id="clock"></div>
+<!-- DRIVER UI -->
+<div id="driverUI" style="display:none">
+  <div class="topbar">
+    <div class="topbtn" onclick="showPanel('sched')">HOME</div>
+    <div class="topbtn" onclick="showPanel('rtt')">RTT</div>
+    <div class="topbtn" onclick="showPanel('msg')">MSG</div>
+    <div class="topbtn" onclick="showPanel('annc')">ANNC</div>
+    <div class="topbtn" onclick="logout()">LOGOUT</div>
+  </div>
+
+  <div class="main">
+    <div class="left">
+      <div class="leftbtn">HEADSIGN</div>
+      <div class="leftbtn">CARD INFO</div>
+      <div class="leftbtn">SETUP</div>
+      <div class="leftbtn">MAINT</div>
+      <div class="leftbtn">START SHIFT</div>
+      <div class="leftbtn">END SHIFT</div>
+    </div>
+
+    <div class="center">
+      <div id="sched" class="panel active">
+        <h2 style="text-align:center">SCHEDULE</h2>
+        <table id="schedTable"></table>
+      </div>
+
+      <div id="rtt" class="panel">
+        <h2>RTT</h2>
+        <button class="arriveBtn">Call Dispatch</button>
+      </div>
+
+      <div id="msg" class="panel">
+        <h2>Messages</h2>
+        <p>No messages</p>
+      </div>
+
+      <div id="annc" class="panel">
+        <h2>Announcements</h2>
+        <button class="arriveBtn">Move to rear of bus</button>
+        <button class="arriveBtn">Do not talk to operator</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer" class="footer">
+    <div id="statusText">SYSTEMS OK</div>
+    <div id="clock"></div>
+  </div>
+</div>
+
+<!-- DISPATCHER -->
+<div id="dispatcherUI" style="display:none;padding:20px">
+  <h1>Dispatcher Panel</h1>
+  <button onclick="logout()">Logout</button>
+  <p>(Schedule tools will go here)</p>
+</div>
+
+<!-- SUPERVISOR -->
+<div id="supervisorUI" style="display:none;padding:20px">
+  <h1>Supervisor Panel</h1>
+  <button onclick="logout()">Logout</button>
 </div>
 
 <script>
-/* CLOCK */
-function updateClock(){
-  clock.innerText = new Date().toLocaleTimeString([],{
-    hour:'2-digit',minute:'2-digit'
-  });
+/* USERS */
+const users={
+  "3675":{pass:"SR",role:"driver"},
+  "3804":{pass:"ER",role:"driver"},
+  "dispatch":{pass:"admin",role:"dispatcher"},
+  "U11":{pass:"BIGT",role:"supervisor"}
+};
+
+/* LOGIN */
+function login(){
+  const u=user.value;
+  const p=pass.value;
+  const r=role.value;
+
+  if(!users[u]||users[u].pass!==p||users[u].role!==r){
+    alert("Invalid login");
+    return;
+  }
+  login.style.display="none";
+  if(r==="driver") driverUI.style.display="block";
+  if(r==="dispatcher") dispatcherUI.style.display="block";
+  if(r==="supervisor") supervisorUI.style.display="block";
 }
-setInterval(updateClock,1000); updateClock();
+
+/* LOGOUT */
+function logout(){
+  location.reload();
+}
 
 /* PANEL SWITCH */
 function showPanel(id){
@@ -214,61 +257,53 @@ function showPanel(id){
   document.getElementById(id).classList.add("active");
 }
 
+/* CLOCK */
+setInterval(()=>clock.innerText=new Date().toLocaleTimeString(),1000);
+
 /* SCHEDULE */
-const scheduleData = [
-  { stop:"Main St", time:"08:30", arrived:false },
-  { stop:"Broadway", time:"08:42", arrived:false }
+const stops=[
+  {stop:"Main St",time:"08:30",arrived:false},
+  {stop:"Broadway",time:"08:42",arrived:false}
 ];
 
-function renderSchedule(){
-  const t = document.getElementById("sched");
-  t.innerHTML = `<tr><th>STOP</th><th>TIME</th><th>STATUS</th></tr>`;
-  scheduleData.forEach((s,i)=>{
-    const r=t.insertRow();
+function renderSched(){
+  schedTable.innerHTML="<tr><th>STOP</th><th>TIME</th><th>STATUS</th></tr>";
+  stops.forEach((s,i)=>{
+    const r=schedTable.insertRow();
     r.insertCell().innerText=s.stop;
     r.insertCell().innerText=s.time;
     const c=r.insertCell();
-    c.innerHTML = s.arrived
-      ? s.status
-      : `<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
+    if(!s.arrived){
+      c.innerHTML=`<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
+    }else c.innerText=s.status;
   });
 }
 
 function arrive(i){
-  const s=scheduleData[i];
+  const s=stops[i];
   const now=new Date();
   const [h,m]=s.time.split(":").map(Number);
-  const sched=new Date(); sched.setHours(h,m,0,0);
+  const sched=new Date();sched.setHours(h,m,0,0);
   const diff=Math.round((now-sched)/60000);
   s.arrived=true;
-  s.status = diff>1 ? `LATE +${diff} MIN` :
-             diff<-1 ? `EARLY ${Math.abs(diff)} MIN` : "ON TIME";
-  renderSchedule();
+  s.status=diff>1?`LATE +${diff} MIN`:diff<-1?`EARLY ${-diff} MIN`:"ON TIME";
+  renderSched();
   updateFooter();
 }
 
 function updateFooter(){
-  const next=scheduleData.find(s=>!s.arrived);
-  if(!next){
-    footer.classList.remove("late");
-    statusText.innerText="TRIP COMPLETE";
-    return;
-  }
+  const next=stops.find(s=>!s.arrived);
+  if(!next){statusText.innerText="TRIP COMPLETE";footer.classList.remove("late");return;}
   const [h,m]=next.time.split(":").map(Number);
-  const sched=new Date(); sched.setHours(h,m,0,0);
+  const sched=new Date();sched.setHours(h,m,0,0);
   const diff=Math.round((new Date()-sched)/60000);
-  if(diff>1){
-    footer.classList.add("late");
-    statusText.innerText=`LATE ${diff} MIN`;
-  }else{
-    footer.classList.remove("late");
-    statusText.innerText="SYSTEMS OK";
-  }
+  if(diff>1){footer.classList.add("late");statusText.innerText=`LATE ${diff} MIN`;}
+  else{footer.classList.remove("late");statusText.innerText="SYSTEMS OK";}
 }
 
-renderSchedule();
-setInterval(updateFooter,5000);
+renderSched();
 </script>
 
 </body>
 </html>
+
