@@ -7,139 +7,49 @@
 
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#9fd3ff;
-  color:white;
-}
+body{margin:0;font-family:Arial;background:#9fd3ff;color:white}
+button,input,select,textarea{padding:8px;font-weight:bold}
+button{cursor:pointer}
+.page{display:none}
 
 /* LOGIN */
-#loginPage{
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-.loginBox{
-  width:360px;
-  padding:30px;
-  background:#0b2e63;
-  border-radius:10px;
-}
-.loginBox h2{text-align:center}
-.loginBox input{
-  width:100%;
-  padding:14px;
-  margin-bottom:12px;
-}
-.loginBox button{
-  width:100%;
-  padding:14px;
-  background:#1e88e5;
-  border:none;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-}
+#loginPage{height:100vh;display:flex;justify-content:center;align-items:center}
+.loginBox{width:360px;padding:30px;background:#0b2e63;border-radius:10px}
 
-/* TOP BAR */
-.topBar{
-  background:#0b2e63;
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
+/* TOP */
+.topBar{background:#0b2e63;padding:12px;display:flex;justify-content:space-between}
 
 /* LAYOUT */
-.main{
-  display:flex;
-  height:calc(100vh - 110px);
-}
-.sideBar{
-  width:200px;
-  background:#0b2e63;
-  padding:10px;
-}
-.sideBtn{
-  width:100%;
-  padding:12px;
-  margin-bottom:10px;
-  background:#123d7a;
-  border:2px solid #5fb0ff;
-  color:white;
-  font-weight:bold;
-}
-.content{
-  flex:1;
-  padding:15px;
-  background:#0a2a5c;
-}
-.panel{
-  background:#103b7a;
-  border:2px solid #5fb0ff;
-  padding:10px;
-  margin-bottom:15px;
-}
+.main{display:flex;height:calc(100vh - 110px)}
+.sideBar{width:200px;background:#0b2e63;padding:10px}
+.sideBtn{width:100%;margin-bottom:10px;background:#123d7a;border:2px solid #5fb0ff;color:white}
+.content{flex:1;padding:15px;background:#0a2a5c}
+.panel{background:#103b7a;border:2px solid #5fb0ff;padding:10px;margin-bottom:15px}
 
 /* TABLE */
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-th,td{
-  border:1px solid #5fb0ff;
-  padding:8px;
-  text-align:center;
-}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #5fb0ff;padding:6px;text-align:center}
 th{background:#123d7a}
-.arriveBtn{
-  background:#1d4ed8;
-  border:1px solid #5fb0ff;
-  padding:6px;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-}
+.arriveBtn{background:#1d4ed8;border:1px solid #5fb0ff;color:white}
 
 /* SYSTEM BAR */
-.systemBar{
-  height:40px;
-  background:#0f7a3c;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:0 15px;
-  font-weight:bold;
-}
+.systemBar{height:40px;background:#0f7a3c;display:flex;justify-content:space-between;align-items:center;padding:0 15px;font-weight:bold}
 .systemBar.late{background:#b91c1c}
-
-/* MESSAGE LOG */
-.msgLog{
-  font-size:14px;
-  max-height:120px;
-  overflow-y:auto;
-}
-
-/* PAGES */
-.page{display:none}
 </style>
 </head>
 
 <body>
 
-<!-- 🔊 DEPARTURE BEEP -->
 <audio id="tripBeep">
-  <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=" type="audio/wav">
+  <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=">
 </audio>
 
 <!-- LOGIN -->
 <div id="loginPage">
   <div class="loginBox">
     <h2>PRTA Login</h2>
-    <input id="username" placeholder="Username">
-    <input id="password" type="password" placeholder="Password">
+    <input id="username" placeholder="Username"><br><br>
+    <input id="password" type="password" placeholder="Password"><br><br>
     <button onclick="login()">LOGIN</button>
   </div>
 </div>
@@ -160,34 +70,10 @@ th{background:#123d7a}
     </div>
 
     <div class="content">
-
-      <!-- SCHEDULE -->
       <div class="panel">
         <h3>SCHEDULE</h3>
         <table id="driverTable"></table>
       </div>
-
-      <!-- PASSENGERS -->
-      <div class="panel">
-        <h3>PASSENGER COUNT</h3>
-        <p>Total Onboard: <strong id="paxCount">0</strong></p>
-        <button class="arriveBtn" onclick="board()">+ Board</button>
-        <button class="arriveBtn" onclick="alight()">− Alight</button>
-      </div>
-
-      <!-- CANNED MESSAGES -->
-      <div class="panel">
-        <h3>DISPATCH MESSAGES</h3>
-        <button class="arriveBtn" onclick="sendMsg('Running Late')">Running Late</button>
-        <button class="arriveBtn" onclick="sendMsg('Traffic Delay')">Traffic Delay</button>
-        <button class="arriveBtn" onclick="sendMsg('Mechanical Issue')">Mechanical Issue</button>
-        <button class="arriveBtn" onclick="sendMsg('Operator Assistance Requested')">Operator Assistance Requested</button>
-        <button class="arriveBtn" onclick="sendMsg('Customer Declined Shoulder Strap')">
-          Customer Declined Shoulder Strap
-        </button>
-        <div class="msgLog" id="msgLog"></div>
-      </div>
-
     </div>
   </div>
 
@@ -197,47 +83,87 @@ th{background:#123d7a}
   </div>
 </div>
 
+<!-- DISPATCHER -->
+<div id="dispatcherPage" class="page">
+  <div class="topBar">
+    <strong>DISPATCHER</strong>
+    <button onclick="logout()">LOG OUT</button>
+  </div>
+
+  <div class="content">
+    <div class="panel">
+      <h3>Create Schedule</h3>
+      <select id="schDriver">
+        <option value="">Select Driver</option>
+        <option value="3675">3675</option>
+        <option value="3804">3804</option>
+      </select><br><br>
+
+      <input id="schStop" placeholder="Stop name"><br><br>
+      <input id="schTime" placeholder="HH:MM"><br><br>
+      <button onclick="addStop()">Add Stop</button>
+      <button onclick="assignSchedule()">Assign Schedule</button>
+    </div>
+
+    <div class="panel">
+      <h3>Current Schedules</h3>
+      <pre id="scheduleDump"></pre>
+    </div>
+  </div>
+</div>
+
 <script>
 /* USERS */
 const users={
   "3675":{password:"SR",role:"driver"},
   "3804":{password:"ER",role:"driver"},
-  "dispatcher":{password:"admin",role:"dispatcher"},
-  "supervisor":{password:"super",role:"supervisor"}
+  "dispatcher":{password:"admin",role:"dispatcher"}
 };
 
 let currentUser=null;
 
-/* SCHEDULE WITH ALERT FLAGS */
-let driverSchedule=[
-  {stop:"Main St",time:"08:30",arrived:false,alerted:false},
-  {stop:"Broadway",time:"08:42",arrived:false,alerted:false},
-  {stop:"Depot",time:"08:55",arrived:false,alerted:false}
-];
-
-/* PASSENGERS */
-let passengers=0;
+/* SHARED SCHEDULE STORE */
+const schedules={};  // driver -> array of stops
+let tempStops=[];
 
 /* LOGIN */
 function login(){
   const u=username.value.trim();
   const p=password.value.trim();
-  if(!users[u]||users[u].password!==p){
-    alert("Invalid login");return;
-  }
+  if(!users[u]||users[u].password!==p){alert("Invalid login");return;}
   currentUser={name:u,role:users[u].role};
   loginPage.style.display="none";
   if(currentUser.role==="driver") driverPage.style.display="block";
+  if(currentUser.role==="dispatcher") dispatcherPage.style.display="block";
   renderDriver();
+  renderDispatch();
 }
-
-/* LOGOUT */
 function logout(){location.reload();}
 
-/* RENDER DRIVER */
+/* DISPATCH */
+function addStop(){
+  if(!schStop.value||!schTime.value)return;
+  tempStops.push({stop:schStop.value,time:schTime.value,arrived:false,alerted:false});
+  schStop.value=""; schTime.value="";
+}
+
+function assignSchedule(){
+  if(!schDriver.value||tempStops.length===0)return;
+  schedules[schDriver.value]=JSON.parse(JSON.stringify(tempStops));
+  tempStops=[];
+  renderDispatch();
+}
+
+function renderDispatch(){
+  scheduleDump.textContent=JSON.stringify(schedules,null,2);
+}
+
+/* DRIVER */
 function renderDriver(){
+  if(currentUser?.role!=="driver")return;
+  const list=schedules[currentUser.name]||[];
   driverTable.innerHTML="<tr><th>STOP</th><th>TIME</th><th>STATUS</th></tr>";
-  driverSchedule.forEach((s,i)=>{
+  list.forEach((s,i)=>{
     const r=driverTable.insertRow();
     r.insertCell().innerText=s.stop;
     r.insertCell().innerText=s.time;
@@ -252,88 +178,39 @@ function renderDriver(){
 
 /* ARRIVE */
 function arrive(i){
-  const s=driverSchedule[i];
-  const now=new Date();
+  const list=schedules[currentUser.name];
+  const s=list[i];
   const [h,m]=s.time.split(":").map(Number);
   const sched=new Date();sched.setHours(h,m,0,0);
-  const diff=Math.round((now-sched)/60000);
-
+  const diff=Math.round((new Date()-sched)/60000);
   s.arrived=true;
   s.status=diff>1?`LATE +${diff} MIN`:diff<-1?`EARLY ${-diff} MIN`:"ON TIME";
-
-  if(driverSchedule.every(x=>x.arrived)){
-    driverSchedule=[];
-    passengers=0;
-    paxCount.innerText=passengers;
-  }
-
+  if(list.every(x=>x.arrived)) delete schedules[currentUser.name];
   renderDriver();
-  updateSystemBar();
 }
 
-/* 🔔 DEPARTURE BEEP CHECK */
+/* BEEP */
 function checkDepartureBeep(){
-  const next=driverSchedule.find(s=>!s.arrived);
-  if(!next || next.alerted) return;
-
-  const [h,m]=next.time.split(":").map(Number);
-  const sched=new Date();
-  sched.setHours(h,m,0,0);
-
-  if(new Date()>=sched){
-    next.alerted=true;
-    playTripBeep();
-  }
-}
-
-/* 🔊 PLAY BEEP */
-function playTripBeep(){
-  const beep=document.getElementById("tripBeep");
-  beep.currentTime=0;
-  beep.play().catch(()=>{});
-}
-
-/* SYSTEM BAR */
-function updateSystemBar(){
-  const next=driverSchedule.find(s=>!s.arrived);
-  if(!next){
-    systemBar.classList.remove("late");
-    statusText.innerText="TRIP COMPLETE";
-    return;
-  }
+  if(currentUser?.role!=="driver")return;
+  const next=(schedules[currentUser.name]||[]).find(s=>!s.arrived&&!s.alerted);
+  if(!next)return;
   const [h,m]=next.time.split(":").map(Number);
   const sched=new Date();sched.setHours(h,m,0,0);
-  const diff=Math.round((new Date()-sched)/60000);
-  if(diff>1){
-    systemBar.classList.add("late");
-    statusText.innerText=`LATE ${diff} MIN`;
-  }else{
-    systemBar.classList.remove("late");
-    statusText.innerText="SYSTEMS OK";
+  if(new Date()>=sched){
+    next.alerted=true;
+    tripBeep.play().catch(()=>{});
   }
 }
 
-/* PASSENGERS */
-function board(){passengers++; paxCount.innerText=passengers;}
-function alight(){if(passengers>0)passengers--; paxCount.innerText=passengers;}
-
-/* MESSAGES */
-function sendMsg(text){
-  const t=new Date().toLocaleTimeString();
-  const d=document.createElement("div");
-  d.innerText=`[${t}] ${text}`;
-  msgLog.prepend(d);
-}
-
-/* CLOCK + CHECKS */
+/* CLOCK */
 setInterval(()=>{
   clock.innerText=new Date().toLocaleTimeString([],{
     hour:'2-digit',minute:'2-digit'
   });
-  updateSystemBar();
   checkDepartureBeep();
 },1000);
 </script>
 
 </body>
 </html>
+
