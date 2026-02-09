@@ -6,88 +6,123 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #9fd3ff;
-  color: white;
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#9fd3ff;
+  color:white;
 }
 
-/* ===== LOGIN ===== */
-#loginPage {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* LOGIN */
+#loginPage{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.loginBox{
+  width:360px;
+  padding:30px;
+  background:#0b2e63;
+  border-radius:10px;
+}
+.loginBox h2{text-align:center}
+.loginBox input{
+  width:100%;
+  padding:14px;
+  margin-bottom:12px;
+}
+.loginBox button{
+  width:100%;
+  padding:14px;
+  background:#1e88e5;
+  border:none;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-.loginBox {
-  width: 360px;
-  padding: 30px;
-  background: #0b2e63;
-  border-radius: 10px;
+/* TOP BAR */
+.topBar{
+  background:#0b2e63;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
-.loginBox h2 {
-  text-align: center;
-  margin-bottom: 20px;
+/* LAYOUT */
+.main{
+  display:flex;
+  height:calc(100vh - 110px);
+}
+.sideBar{
+  width:200px;
+  background:#0b2e63;
+  padding:10px;
+}
+.sideBtn{
+  width:100%;
+  padding:12px;
+  margin-bottom:10px;
+  background:#123d7a;
+  border:2px solid #5fb0ff;
+  color:white;
+  font-weight:bold;
+}
+.content{
+  flex:1;
+  padding:15px;
+  background:#0a2a5c;
+}
+.panel{
+  background:#103b7a;
+  border:2px solid #5fb0ff;
+  padding:10px;
 }
 
-.loginBox input {
-  width: 100%;
-  padding: 14px;
-  margin-bottom: 12px;
-  font-size: 16px;
+/* TABLE */
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid #5fb0ff;
+  padding:8px;
+  text-align:center;
+}
+th{background:#123d7a}
+.arriveBtn{
+  background:#1d4ed8;
+  border:1px solid #5fb0ff;
+  padding:6px;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-.loginBox button {
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  background: #1e88e5;
-  border: none;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
+/* SYSTEM BAR */
+.systemBar{
+  height:40px;
+  background:#0f7a3c;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 15px;
+  font-weight:bold;
 }
+.systemBar.late{background:#b91c1c}
 
-/* ===== PAGES ===== */
-.page {
-  display: none;
-  padding: 20px;
-}
-
-.topBar {
-  background: #0b2e63;
-  padding: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-button.logout {
-  background: #b91c1c;
-  border: none;
-  padding: 10px 16px;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* ===== CONTENT ===== */
-.content {
-  padding: 20px;
-  background: #0a2a5c;
-  min-height: calc(100vh - 64px);
-}
+/* PAGES */
+.page{display:none}
+.hidden{display:none}
 </style>
 </head>
 
 <body>
 
-<!-- ================= LOGIN ================= -->
+<!-- LOGIN -->
 <div id="loginPage">
   <div class="loginBox">
     <h2>PRTA Login</h2>
@@ -97,89 +132,156 @@ button.logout {
   </div>
 </div>
 
-<!-- ================= DRIVER ================= -->
+<!-- DRIVER -->
 <div id="driverPage" class="page">
   <div class="topBar">
     <strong>DRIVER MDT</strong>
-    <button class="logout" onclick="logout()">LOG OUT</button>
+    <button onclick="logout()">LOG OUT</button>
   </div>
-  <div class="content">
-    <h3>Driver screen loaded</h3>
-    <p>If you see this, driver login works.</p>
+
+  <div class="main">
+    <div class="sideBar">
+      <button class="sideBtn">HEADSIGN</button>
+      <button class="sideBtn">CARD INFO</button>
+      <button class="sideBtn">SETUP</button>
+      <button class="sideBtn">MAINT</button>
+    </div>
+
+    <div class="content">
+      <div class="panel">
+        <h3>SCHEDULE</h3>
+        <table id="driverTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <div id="systemBar" class="systemBar">
+    <span id="statusText">SYSTEMS OK</span>
+    <span id="clock"></span>
   </div>
 </div>
 
-<!-- ================= DISPATCHER ================= -->
+<!-- DISPATCHER -->
 <div id="dispatcherPage" class="page">
   <div class="topBar">
     <strong>DISPATCHER</strong>
-    <button class="logout" onclick="logout()">LOG OUT</button>
+    <button onclick="logout()">LOG OUT</button>
   </div>
   <div class="content">
-    <h3>Dispatcher screen loaded</h3>
-    <p>If you see this, dispatcher login works.</p>
+    <p>Dispatcher screen loaded.</p>
   </div>
 </div>
 
-<!-- ================= SUPERVISOR ================= -->
+<!-- SUPERVISOR -->
 <div id="supervisorPage" class="page">
   <div class="topBar">
     <strong>SUPERVISOR</strong>
-    <button class="logout" onclick="logout()">LOG OUT</button>
+    <button onclick="logout()">LOG OUT</button>
   </div>
   <div class="content">
-    <h3>Supervisor screen loaded</h3>
-    <p>If you see this, supervisor login works.</p>
+    <p>Supervisor screen loaded.</p>
   </div>
 </div>
 
 <script>
-/* ===== USERS ===== */
-const users = {
-  "3675": { password: "SR", role: "driver" },
-  "3804": { password: "ER", role: "driver" },
-  "dispatcher": { password: "admin", role: "dispatcher" },
-  "supervisor": { password: "super", role: "supervisor" }
+/* USERS */
+const users={
+  "3675":{password:"SR",role:"driver"},
+  "3804":{password:"ER",role:"driver"},
+  "dispatcher":{password:"admin",role:"dispatcher"},
+  "supervisor":{password:"super",role:"supervisor"}
 };
 
-/* ===== LOGIN ===== */
-function login() {
-  const u = document.getElementById("username").value.trim();
-  const p = document.getElementById("password").value.trim();
+let currentUser=null;
 
-  if (!users[u]) {
-    alert("Invalid username");
+/* SAMPLE DRIVER SCHEDULE */
+let driverSchedule=[
+  {stop:"Main St",time:"08:30",arrived:false},
+  {stop:"Broadway",time:"08:42",arrived:false},
+  {stop:"Depot",time:"08:55",arrived:false}
+];
+
+/* LOGIN */
+function login(){
+  const u=username.value.trim();
+  const p=password.value.trim();
+  if(!users[u]||users[u].password!==p){
+    alert("Invalid login");return;
+  }
+  currentUser={name:u,role:users[u].role};
+  loginPage.style.display="none";
+  if(currentUser.role==="driver") driverPage.style.display="block";
+  if(currentUser.role==="dispatcher") dispatcherPage.style.display="block";
+  if(currentUser.role==="supervisor") supervisorPage.style.display="block";
+  renderDriver();
+}
+
+/* LOGOUT */
+function logout(){location.reload();}
+
+/* DRIVER RENDER */
+function renderDriver(){
+  if(!currentUser||currentUser.role!=="driver")return;
+  driverTable.innerHTML="<tr><th>STOP</th><th>TIME</th><th>STATUS</th></tr>";
+  driverSchedule.forEach((s,i)=>{
+    const r=driverTable.insertRow();
+    r.insertCell().innerText=s.stop;
+    r.insertCell().innerText=s.time;
+    const c=r.insertCell();
+    if(!s.arrived){
+      c.innerHTML=`<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
+    }else{
+      c.innerText=s.status;
+    }
+  });
+}
+
+/* ARRIVE */
+function arrive(i){
+  const s=driverSchedule[i];
+  const now=new Date();
+  const [h,m]=s.time.split(":").map(Number);
+  const sched=new Date();sched.setHours(h,m,0,0);
+  const diff=Math.round((now-sched)/60000);
+  s.arrived=true;
+  s.status=diff>1?`LATE +${diff} MIN`:diff<-1?`EARLY ${-diff} MIN`:"ON TIME";
+  if(driverSchedule.every(x=>x.arrived)){
+    driverSchedule=[];
+  }
+  renderDriver();
+  updateSystemBar();
+}
+
+/* SYSTEM BAR */
+function updateSystemBar(){
+  const next=driverSchedule.find(s=>!s.arrived);
+  if(!next){
+    systemBar.classList.remove("late");
+    statusText.innerText="TRIP COMPLETE";
     return;
   }
-
-  if (users[u].password !== p) {
-    alert("Invalid password");
-    return;
-  }
-
-  document.getElementById("loginPage").style.display = "none";
-
-  if (users[u].role === "driver") {
-    document.getElementById("driverPage").style.display = "block";
-  }
-
-  if (users[u].role === "dispatcher") {
-    document.getElementById("dispatcherPage").style.display = "block";
-  }
-
-  if (users[u].role === "supervisor") {
-    document.getElementById("supervisorPage").style.display = "block";
+  const [h,m]=next.time.split(":").map(Number);
+  const sched=new Date();sched.setHours(h,m,0,0);
+  const diff=Math.round((new Date()-sched)/60000);
+  if(diff>1){
+    systemBar.classList.add("late");
+    statusText.innerText=`LATE ${diff} MIN`;
+  }else{
+    systemBar.classList.remove("late");
+    statusText.innerText="SYSTEMS OK";
   }
 }
 
-/* ===== LOGOUT ===== */
-function logout() {
-  location.reload();
-}
+/* CLOCK */
+setInterval(()=>{
+  clock.innerText=new Date().toLocaleTimeString([],{
+    hour:'2-digit',minute:'2-digit'
+  });
+  updateSystemBar();
+},1000);
 </script>
 
 </body>
 </html>
-
 
 
