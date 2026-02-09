@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-/* ========== COLORS ========== */
 :root{
   --baby:#9ad1ff;
   --dark:#0b2c6d;
@@ -18,6 +17,7 @@
 }
 
 *{box-sizing:border-box}
+
 body{
   margin:0;
   background:var(--baby);
@@ -25,8 +25,8 @@ body{
   color:var(--white);
 }
 
-/* ========== LOGIN ========== */
-#login{
+/* ===== LOGIN ===== */
+#loginScreen{
   height:100vh;
   display:flex;
   justify-content:center;
@@ -52,7 +52,7 @@ body{
   cursor:pointer;
 }
 
-/* ========== TOP BAR ========== */
+/* ===== TOP BAR ===== */
 .topbar{
   display:flex;
   gap:10px;
@@ -68,13 +68,13 @@ body{
   cursor:pointer;
 }
 
-/* ========== MAIN LAYOUT ========== */
+/* ===== MAIN ===== */
 .main{
   display:flex;
   height:calc(100vh - 110px);
 }
 
-/* ========== LEFT ========== */
+/* ===== LEFT ===== */
 .left{
   width:220px;
   padding:10px;
@@ -91,7 +91,7 @@ body{
   cursor:pointer;
 }
 
-/* ========== CENTER PANELS ========== */
+/* ===== CENTER ===== */
 .center{
   flex:1;
   padding:10px;
@@ -105,7 +105,7 @@ body{
 }
 .panel.active{display:block}
 
-/* ========== TABLE ========== */
+/* ===== TABLE ===== */
 table{
   width:100%;
   border-collapse:collapse;
@@ -127,7 +127,7 @@ th{background:var(--btn)}
   cursor:pointer;
 }
 
-/* ========== FOOTER ========== */
+/* ===== FOOTER ===== */
 .footer{
   height:40px;
   display:flex;
@@ -144,7 +144,7 @@ th{background:var(--btn)}
 <body>
 
 <!-- LOGIN -->
-<div id="login">
+<div id="loginScreen">
   <div class="loginBox">
     <h2>PRTA Login</h2>
     <select id="role">
@@ -152,9 +152,9 @@ th{background:var(--btn)}
       <option value="dispatcher">Dispatcher</option>
       <option value="supervisor">Supervisor</option>
     </select>
-    <input id="user" placeholder="Username">
-    <input id="pass" type="password" placeholder="Password">
-    <button onclick="login()">Login</button>
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="doLogin()">Login</button>
   </div>
 </div>
 
@@ -212,7 +212,6 @@ th{background:var(--btn)}
 <div id="dispatcherUI" style="display:none;padding:20px">
   <h1>Dispatcher Panel</h1>
   <button onclick="logout()">Logout</button>
-  <p>(Schedule tools will go here)</p>
 </div>
 
 <!-- SUPERVISOR -->
@@ -231,16 +230,18 @@ const users={
 };
 
 /* LOGIN */
-function login(){
-  const u=user.value;
-  const p=pass.value;
+function doLogin(){
+  const u=username.value;
+  const p=password.value;
   const r=role.value;
 
-  if(!users[u]||users[u].pass!==p||users[u].role!==r){
+  if(!users[u] || users[u].pass!==p || users[u].role!==r){
     alert("Invalid login");
     return;
   }
-  login.style.display="none";
+
+  loginScreen.style.display="none";
+
   if(r==="driver") driverUI.style.display="block";
   if(r==="dispatcher") dispatcherUI.style.display="block";
   if(r==="supervisor") supervisorUI.style.display="block";
@@ -258,7 +259,9 @@ function showPanel(id){
 }
 
 /* CLOCK */
-setInterval(()=>clock.innerText=new Date().toLocaleTimeString(),1000);
+setInterval(()=>clock.innerText=new Date().toLocaleTimeString([],{
+  hour:'2-digit',minute:'2-digit'
+}),1000);
 
 /* SCHEDULE */
 const stops=[
@@ -273,9 +276,9 @@ function renderSched(){
     r.insertCell().innerText=s.stop;
     r.insertCell().innerText=s.time;
     const c=r.insertCell();
-    if(!s.arrived){
-      c.innerHTML=`<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
-    }else c.innerText=s.status;
+    c.innerHTML = s.arrived
+      ? s.status
+      : `<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
   });
 }
 
@@ -306,4 +309,5 @@ renderSched();
 
 </body>
 </html>
+
 
