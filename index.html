@@ -1,4 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Driver MDT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#8ec5ff;         /* baby blue */
+  --panel:#0b2c6d;      /* dark panel */
+  --btn:#123c8a;        /* button blue */
+  --border:#7dd3fc;     /* light blue border */
+  --white:#f8fafc;
+  --red:#b91c1c;
+  --green:#15803d;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  font-family:Arial, Helvetica, sans-serif;
+  color:var(--white);
+}
+
+/* TOP BAR */
+.topbar{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:10px;
+  padding:10px;
+}
+.topbtn{
+  background:var(--btn);
+  border:2px solid var(--border);
+  border-radius:6px;
+  padding:10px;
+  text-align:center;
+  font-weight:bold;
+}
+
+/* MAIN */
+.main{
+  display:grid;
+  grid-template-columns:220px 1fr;
+  height:calc(100vh - 110px);
+}
+
+/* LEFT */
+.left{
+  padding:10px;
+  display:grid;
+  gap:10px;
+}
+.leftbtn{
+  background:var(--btn);
+  border:2px solid var(--border);
+  border-radius:8px;
+  padding:18px;
+  text-align:center;
+  font-weight:bold;
+}
+
+/* CENTER */
+.center{
+  padding:10px;
+}
+.schedule{
+  height:100%;
+  background:var(--panel);
+  border:2px solid var(--border);
+  border-radius:12px;
+  padding:10px;
+}
+.schedule h2{
+  margin:0 0 10px;
+  text-align:center;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid var(--border);
+  padding:6px;
+  text-align:center;
+}
+th{
+  background:var(--btn);
+}
+
+/* ARRIVED BUTTON */
+.arriveBtn{
+  width:100%;
+  padding:6px;
+  background:#1d4ed8;
+  border:1px solid var(--border);
+  color:white;
+  font-weight:bold;
+  border-radius:4px;
+  cursor:pointer;
+}
+
+/* FOOTER */
+.footer{
+  height:40px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 12px;
+  font-weight:bold;
+  background:var(--green);
+}
+.footer.late{
+  background:var(--red);
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOP -->
+<div class="topbar">
+  <div class="topbtn">RTT</div>
+  <div class="topbtn">MSG</div>
+  <div class="topbtn">ANNC</div>
+  <div class="topbtn">MENU</div>
+  <div class="topbtn">HOME</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="leftbtn">HEADSIGN</div>
+    <div class="leftbtn">CARD INFO</div>
+    <div class="leftbtn">SETUP</div>
+    <div class="leftbtn">MAINT</div>
+    <div class="leftbtn">START SHIFT</div>
+    <div class="leftbtn">LOG OUT</div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center">
+    <div class="schedule">
+      <h2>SCHEDULE</h2>
+      <table id="sched"></table>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div id="footer" class="footer">
+  <div id="statusText">SYSTEMS OK</div>
+  <div id="clock"></div>
+</div>
+
 <script>
+/* CLOCK */
+function updateClock(){
+  clock.innerText = new Date().toLocaleTimeString([],{
+    hour:'2-digit',minute:'2-digit'
+  });
+}
+setInterval(updateClock,1000); updateClock();
+
+/* SCHEDULE DATA */
 const scheduleData = [
   { stop:"Main St", time:"08:30", arrived:false },
   { stop:"Broadway", time:"08:42", arrived:false }
@@ -23,8 +192,7 @@ function renderSchedule(){
 
     if(!s.arrived){
       statusCell.innerHTML =
-        `<button style="width:100%;padding:6px"
-          onclick="arrive(${i})">ARRIVED</button>`;
+        `<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
     } else {
       statusCell.innerText = s.statusText;
     }
@@ -39,14 +207,14 @@ function arrive(index){
   const sched = new Date();
   sched.setHours(h,m,0,0);
 
-  const diff = Math.round((now - sched) / 60000);
+  const diff = Math.round((now - sched)/60000);
 
-  let status = "ON TIME";
-  if(diff > 1) status = `LATE +${diff} MIN`;
-  if(diff < -1) status = `EARLY ${Math.abs(diff)} MIN`;
+  let text = "ON TIME";
+  if(diff > 1) text = `LATE +${diff} MIN`;
+  if(diff < -1) text = `EARLY ${Math.abs(diff)} MIN`;
 
   s.arrived = true;
-  s.statusText = status;
+  s.statusText = text;
 
   renderSchedule();
   updateFooter();
@@ -64,8 +232,7 @@ function updateFooter(){
   const sched = new Date();
   sched.setHours(h,m,0,0);
 
-  const now = new Date();
-  const diff = Math.round((now - sched) / 60000);
+  const diff = Math.round((new Date()-sched)/60000);
 
   if(diff > 1){
     footer.classList.add("late");
@@ -80,4 +247,6 @@ renderSchedule();
 setInterval(updateFooter,5000);
 </script>
 
+</body>
+</html>
 
