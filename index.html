@@ -7,8 +7,8 @@
 
 <style>
 :root{
-  --bg:#9ad1ff;
-  --panel:#0b2c6d;
+  --baby:#9ad1ff;
+  --dark:#0b2c6d;
   --btn:#123c8a;
   --border:#7dd3fc;
   --white:#f8fafc;
@@ -16,42 +16,49 @@
   --green:#15803d;
 }
 
+*{box-sizing:border-box}
+
 body{
   margin:0;
-  background:var(--bg);
+  background:var(--baby);
   font-family:Arial, Helvetica, sans-serif;
   color:var(--white);
 }
 
-/* TOP BAR */
+/* ================= TOP BAR ================= */
 .topbar{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
+  display:flex;
   gap:10px;
   padding:10px;
+  z-index:10;
+  position:relative;
 }
 .topbtn{
+  flex:1;
   background:var(--btn);
   border:2px solid var(--border);
   border-radius:6px;
-  padding:10px;
+  padding:12px;
   text-align:center;
   font-weight:bold;
   cursor:pointer;
+  pointer-events:auto;
 }
 
-/* MAIN */
+/* ================= MAIN ================= */
 .main{
-  display:grid;
-  grid-template-columns:220px 1fr;
+  display:flex;
   height:calc(100vh - 110px);
 }
 
-/* LEFT */
+/* ================= LEFT ================= */
 .left{
+  width:220px;
   padding:10px;
-  display:grid;
+  display:flex;
+  flex-direction:column;
   gap:10px;
+  z-index:5;
 }
 .leftbtn{
   background:var(--btn);
@@ -61,43 +68,54 @@ body{
   text-align:center;
   font-weight:bold;
   cursor:pointer;
+  pointer-events:auto;
 }
 
-/* PANELS */
+/* ================= CENTER ================= */
+.center{
+  flex:1;
+  padding:10px;
+  z-index:1;
+}
+
+/* ================= PANELS ================= */
 .panel{
   display:none;
   height:100%;
-  background:var(--panel);
+  background:var(--dark);
   border:2px solid var(--border);
   border-radius:12px;
   padding:10px;
 }
-.panel.active{display:block}
+.panel.active{
+  display:block;
+}
 
-/* SCHEDULE */
+/* ================= TABLE ================= */
 table{
   width:100%;
   border-collapse:collapse;
 }
 th,td{
   border:1px solid var(--border);
-  padding:6px;
+  padding:8px;
   text-align:center;
 }
 th{background:var(--btn)}
 
 .arriveBtn{
+  padding:8px;
   width:100%;
-  padding:6px;
   background:#1d4ed8;
   border:1px solid var(--border);
   color:white;
   font-weight:bold;
   border-radius:4px;
   cursor:pointer;
+  pointer-events:auto;
 }
 
-/* FOOTER */
+/* ================= FOOTER ================= */
 .footer{
   height:40px;
   display:flex;
@@ -131,8 +149,8 @@ th{background:var(--btn)}
     <div class="leftbtn" onclick="showPanel('msgPanel')">CARD INFO</div>
     <div class="leftbtn" onclick="showPanel('menuPanel')">SETUP</div>
     <div class="leftbtn" onclick="showPanel('menuPanel')">MAINT</div>
-    <div class="leftbtn">START SHIFT</div>
-    <div class="leftbtn">LOG OUT</div>
+    <div class="leftbtn" onclick="alert('Shift Started')">START SHIFT</div>
+    <div class="leftbtn" onclick="alert('Logged Out')">LOG OUT</div>
   </div>
 
   <!-- CENTER -->
@@ -147,8 +165,9 @@ th{background:var(--btn)}
     <!-- RTT -->
     <div id="rttPanel" class="panel">
       <h2>RTT – Two Way Radio</h2>
-      <p>Radio connected.</p>
-      <button class="arriveBtn">Call Dispatch</button>
+      <button class="arriveBtn" onclick="alert('Dispatch Called')">
+        Call Dispatch
+      </button>
     </div>
 
     <!-- MSG -->
@@ -160,7 +179,7 @@ th{background:var(--btn)}
     <!-- ANNOUNCEMENTS -->
     <div id="anncPanel" class="panel">
       <h2>Announcements</h2>
-      <button class="arriveBtn">Please move to rear of bus</button>
+      <button class="arriveBtn">Move to rear of bus</button>
       <button class="arriveBtn">Do not talk to operator</button>
       <button class="arriveBtn">Accessible seating reminder</button>
     </div>
@@ -168,7 +187,7 @@ th{background:var(--btn)}
     <!-- MENU -->
     <div id="menuPanel" class="panel">
       <h2>System Menu</h2>
-      <p>Diagnostics OK</p>
+      <p>All systems operational</p>
     </div>
 
   </div>
@@ -189,13 +208,13 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
-/* PANEL SWITCHING */
+/* PANEL SWITCH */
 function showPanel(id){
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
 
-/* SCHEDULE DATA */
+/* SCHEDULE */
 const scheduleData = [
   { stop:"Main St", time:"08:30", arrived:false },
   { stop:"Broadway", time:"08:42", arrived:false }
@@ -203,56 +222,45 @@ const scheduleData = [
 
 function renderSchedule(){
   const t = document.getElementById("sched");
-  t.innerHTML = `
-    <tr><th>STOP</th><th>TIME</th><th>STATUS</th></tr>
-  `;
+  t.innerHTML = `<tr><th>STOP</th><th>TIME</th><th>STATUS</th></tr>`;
   scheduleData.forEach((s,i)=>{
-    const r = t.insertRow();
-    r.insertCell().innerText = s.stop;
-    r.insertCell().innerText = s.time;
-    const c = r.insertCell();
-    if(!s.arrived){
-      c.innerHTML =
-        `<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
-    } else {
-      c.innerText = s.statusText;
-    }
+    const r=t.insertRow();
+    r.insertCell().innerText=s.stop;
+    r.insertCell().innerText=s.time;
+    const c=r.insertCell();
+    c.innerHTML = s.arrived
+      ? s.status
+      : `<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
   });
 }
 
 function arrive(i){
-  const s = scheduleData[i];
-  const now = new Date();
-  const [h,m] = s.time.split(":").map(Number);
-  const sched = new Date(); sched.setHours(h,m,0,0);
-  const diff = Math.round((now - sched)/60000);
-
-  let text="ON TIME";
-  if(diff>1) text=`LATE +${diff} MIN`;
-  if(diff<-1) text=`EARLY ${Math.abs(diff)} MIN`;
-
+  const s=scheduleData[i];
+  const now=new Date();
+  const [h,m]=s.time.split(":").map(Number);
+  const sched=new Date(); sched.setHours(h,m,0,0);
+  const diff=Math.round((now-sched)/60000);
   s.arrived=true;
-  s.statusText=text;
-
+  s.status = diff>1 ? `LATE +${diff} MIN` :
+             diff<-1 ? `EARLY ${Math.abs(diff)} MIN` : "ON TIME";
   renderSchedule();
   updateFooter();
 }
 
 function updateFooter(){
-  const next = scheduleData.find(s=>!s.arrived);
+  const next=scheduleData.find(s=>!s.arrived);
   if(!next){
     footer.classList.remove("late");
     statusText.innerText="TRIP COMPLETE";
     return;
   }
-  const [h,m] = next.time.split(":").map(Number);
-  const sched = new Date(); sched.setHours(h,m,0,0);
-  const diff = Math.round((new Date()-sched)/60000);
-
+  const [h,m]=next.time.split(":").map(Number);
+  const sched=new Date(); sched.setHours(h,m,0,0);
+  const diff=Math.round((new Date()-sched)/60000);
   if(diff>1){
     footer.classList.add("late");
     statusText.innerText=`LATE ${diff} MIN`;
-  } else {
+  }else{
     footer.classList.remove("late");
     statusText.innerText="SYSTEMS OK";
   }
@@ -264,5 +272,3 @@ setInterval(updateFooter,5000);
 
 </body>
 </html>
-
-
