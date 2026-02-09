@@ -2,119 +2,127 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PRTA MDT</title>
+<title>PRTA MDT System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-/* ========= GLOBAL ========= */
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #9fd3ff; /* baby blue */
-  color: #fff;
+/* ========= COLORS ========= */
+:root{
+  --baby:#9fd3ff;
+  --dark:#0b2e63;
+  --btn:#123d7a;
+  --border:#5fb0ff;
+  --green:#0f7a3c;
+  --red:#b91c1c;
+  --white:#ffffff;
 }
-button {
-  cursor: pointer;
-  border: none;
-  font-weight: bold;
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:var(--baby);
+  color:var(--white);
 }
-.hidden { display: none; }
+button{
+  background:var(--btn);
+  border:2px solid var(--border);
+  color:white;
+  padding:8px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.hidden{display:none}
 
 /* ========= LOGIN ========= */
-#loginPage {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+#loginPage{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
-.loginBox {
-  background: #0b2e63;
-  padding: 25px;
-  width: 320px;
-  border-radius: 8px;
+.loginBox{
+  background:var(--dark);
+  padding:25px;
+  width:320px;
+  border-radius:8px;
 }
-.loginBox h2 { text-align: center; }
-.loginBox input {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-}
-.loginBox button {
-  width: 100%;
-  padding: 12px;
-  background: #1e88e5;
-  color: white;
+.loginBox input{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
 }
 
-/* ========= TOP BAR ========= */
-.topBar {
-  background: #0b2e63;
-  padding: 10px;
-  display: flex;
-  justify-content: space-around;
+/* ========= DRIVER ========= */
+.topBar{
+  background:var(--dark);
+  padding:10px;
+  display:flex;
+  justify-content:space-around;
 }
-.topBtn {
-  background: #123d7a;
-  border: 2px solid #5fb0ff;
-  color: white;
-  padding: 8px 20px;
-  border-radius: 6px;
+.main{
+  display:flex;
+  height:calc(100vh - 110px);
 }
-
-/* ========= LAYOUT ========= */
-.main {
-  display: flex;
-  height: calc(100vh - 110px);
+.sideBar{
+  width:180px;
+  background:var(--dark);
+  padding:10px;
 }
-.sideBar {
-  width: 180px;
-  background: #0b2e63;
-  padding: 10px;
+.sideBtn{
+  width:100%;
+  margin-bottom:10px;
 }
-.sideBtn {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  background: #123d7a;
-  border: 2px solid #5fb0ff;
-  color: white;
+.content{
+  flex:1;
+  padding:15px;
+  background:#0a2a5c;
 }
-.content {
-  flex: 1;
-  padding: 15px;
-  background: #0a2a5c;
+.panel{
+  background:#103b7a;
+  border:2px solid var(--border);
+  padding:10px;
 }
-
-/* ========= SYSTEM BAR ========= */
-.systemBar {
-  height: 40px;
-  background: #0f7a3c;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 15px;
-  font-weight: bold;
+.systemBar{
+  height:40px;
+  background:var(--green);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 15px;
+  font-weight:bold;
 }
-
-/* ========= PANELS ========= */
-.panel {
-  background: #103b7a;
-  border: 2px solid #5fb0ff;
-  padding: 10px;
+.systemBar.late{background:var(--red)}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid var(--border);
+  padding:6px;
+  text-align:center;
+}
+th{background:var(--btn)}
+.arriveBtn{
+  background:#1d4ed8;
+  border:1px solid var(--border);
 }
 
-/* ========= TABLE ========= */
-table {
-  width: 100%;
-  border-collapse: collapse;
+/* ========= DISPATCHER ========= */
+.dispatchGrid{
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:15px;
 }
-th, td {
-  border: 1px solid #5fb0ff;
-  padding: 8px;
-  text-align: center;
+.dispatchBox{
+  background:var(--dark);
+  padding:10px;
+  border:2px solid var(--border);
 }
-th { background: #123d7a; }
+.dispatchBox input{
+  width:100%;
+  margin:5px 0;
+  padding:6px;
+}
 </style>
 </head>
 
@@ -123,7 +131,7 @@ th { background: #123d7a; }
 <!-- ================= LOGIN ================= -->
 <div id="loginPage">
   <div class="loginBox">
-    <h2>PRTA Secure Login</h2>
+    <h2>PRTA Login</h2>
     <input id="user" placeholder="Username">
     <input id="pass" type="password" placeholder="Password">
     <button onclick="login()">LOGIN</button>
@@ -133,11 +141,8 @@ th { background: #123d7a; }
 <!-- ================= DRIVER ================= -->
 <div id="driverPage" class="hidden">
   <div class="topBar">
-    <button class="topBtn">RTT</button>
-    <button class="topBtn">MSG</button>
-    <button class="topBtn">ANNC</button>
-    <button class="topBtn">MENU</button>
-    <button class="topBtn">HOME</button>
+    <strong>DRIVER MDT</strong>
+    <button onclick="logout()">LOGOUT</button>
   </div>
 
   <div class="main">
@@ -146,24 +151,18 @@ th { background: #123d7a; }
       <button class="sideBtn">CARD INFO</button>
       <button class="sideBtn">SETUP</button>
       <button class="sideBtn">MAINT</button>
-      <button class="sideBtn">START SHIFT</button>
-      <button class="sideBtn" onclick="logout()">LOG OUT</button>
     </div>
 
     <div class="content">
       <div class="panel">
         <h3>SCHEDULE</h3>
-        <table>
-          <tr><th>STOP</th><th>TIME</th><th>STATUS</th></tr>
-          <tr><td>Main St</td><td>08:30</td><td>Pending</td></tr>
-          <tr><td>Broadway</td><td>08:42</td><td>Pending</td></tr>
-        </table>
+        <table id="driverTable"></table>
       </div>
     </div>
   </div>
 
-  <div class="systemBar">
-    <span>SYSTEMS OK</span>
+  <div id="systemBar" class="systemBar">
+    <span id="statusText">SYSTEMS OK</span>
     <span id="clock"></span>
   </div>
 </div>
@@ -171,66 +170,120 @@ th { background: #123d7a; }
 <!-- ================= DISPATCHER ================= -->
 <div id="dispatcherPage" class="hidden">
   <div class="topBar">
-    <strong>Dispatcher Panel</strong>
+    <strong>DISPATCHER</strong>
+    <button onclick="logout()">LOGOUT</button>
   </div>
 
   <div class="content">
-    <button onclick="logout()">LOGOUT</button>
-    <p>Dispatcher dashboard active.</p>
-  </div>
-</div>
+    <div class="dispatchGrid">
 
-<!-- ================= SUPERVISOR ================= -->
-<div id="supervisorPage" class="hidden">
-  <div class="topBar">
-    <strong>Supervisor Panel</strong>
-  </div>
+      <div class="dispatchBox">
+        <h3>Create Schedule</h3>
+        <input id="dDriver" placeholder="Driver (3675 / 3804)">
+        <input id="dStop" placeholder="Stop name">
+        <input id="dTime" placeholder="HH:MM">
+        <button onclick="addStop()">Add Stop</button>
+        <button onclick="assignSchedule()">Assign Schedule</button>
+      </div>
 
-  <div class="content">
-    <button onclick="logout()">LOGOUT</button>
-    <p>Supervisor dashboard active.</p>
+      <div class="dispatchBox">
+        <h3>Live Board</h3>
+        <table id="dispatchBoard"></table>
+      </div>
+
+    </div>
   </div>
 </div>
 
 <script>
 /* ========= USERS ========= */
-const users = {
-  dispatcher: { pass: "admin", role: "dispatcher" },
-  U11: { pass: "BIGT", role: "supervisor" },
-  "3675": { pass: "SR", role: "driver" },
-  "3804": { pass: "ER", role: "driver" }
+const users={
+  dispatcher:{pass:"admin",role:"dispatcher"},
+  "3675":{pass:"SR",role:"driver"},
+  "3804":{pass:"ER",role:"driver"}
 };
+
+/* ========= STATE ========= */
+let currentUser=null;
+let schedules={};
+let tempStops=[];
 
 /* ========= LOGIN ========= */
 function login(){
-  const u = user.value.trim();
-  const p = pass.value.trim();
-
-  if(!users[u] || users[u].pass !== p){
-    alert("Invalid login");
-    return;
-  }
-
+  const u=user.value.trim();
+  const p=pass.value.trim();
+  if(!users[u]||users[u].pass!==p){alert("Invalid login");return;}
+  currentUser={name:u,role:users[u].role};
   loginPage.classList.add("hidden");
+  if(currentUser.role==="driver") driverPage.classList.remove("hidden");
+  if(currentUser.role==="dispatcher") dispatcherPage.classList.remove("hidden");
+  renderDriver();
+  renderBoard();
+}
+function logout(){location.reload();}
 
-  if(users[u].role === "driver") driverPage.classList.remove("hidden");
-  if(users[u].role === "dispatcher") dispatcherPage.classList.remove("hidden");
-  if(users[u].role === "supervisor") supervisorPage.classList.remove("hidden");
+/* ========= DISPATCH ========= */
+function addStop(){
+  tempStops.push({stop:dStop.value,time:dTime.value,arrived:false});
+  dStop.value=""; dTime.value="";
+}
+function assignSchedule(){
+  schedules[dDriver.value]=JSON.parse(JSON.stringify(tempStops));
+  tempStops=[];
+  renderBoard();
 }
 
-/* ========= LOGOUT ========= */
-function logout(){
-  location.reload();
+/* ========= DRIVER ========= */
+function renderDriver(){
+  if(!currentUser||currentUser.role!=="driver")return;
+  const t=driverTable;
+  t.innerHTML="<tr><th>STOP</th><th>TIME</th><th>STATUS</th></tr>";
+  const list=schedules[currentUser.name]||[];
+  list.forEach((s,i)=>{
+    const r=t.insertRow();
+    r.insertCell().innerText=s.stop;
+    r.insertCell().innerText=s.time;
+    const c=r.insertCell();
+    if(!s.arrived){
+      c.innerHTML=`<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
+    }else c.innerText=s.status;
+  });
+}
+function arrive(i){
+  const list=schedules[currentUser.name];
+  const s=list[i];
+  const now=new Date();
+  const [h,m]=s.time.split(":").map(Number);
+  const sched=new Date();sched.setHours(h,m,0,0);
+  const diff=Math.round((now-sched)/60000);
+  s.arrived=true;
+  s.status=diff>1?`LATE +${diff} MIN`:diff<-1?`EARLY ${-diff} MIN`:"ON TIME";
+  if(list.every(x=>x.arrived)) schedules[currentUser.name]=[];
+  renderDriver();
+  renderBoard();
+}
+
+/* ========= BOARD ========= */
+function renderBoard(){
+  dispatchBoard.innerHTML="<tr><th>Driver</th><th>Status</th></tr>";
+  Object.keys(schedules).forEach(d=>{
+    const r=dispatchBoard.insertRow();
+    r.insertCell().innerText=d;
+    const next=schedules[d].find(s=>!s.arrived);
+    if(!next){r.insertCell().innerText="Complete";return;}
+    const [h,m]=next.time.split(":").map(Number);
+    const sched=new Date();sched.setHours(h,m,0,0);
+    const diff=Math.round((new Date()-sched)/60000);
+    r.insertCell().innerText=diff>1?`Late ${diff} min`:"On time";
+  });
 }
 
 /* ========= CLOCK ========= */
-setInterval(()=>{
-  const now = new Date();
-  clock.textContent = now.toLocaleTimeString();
-},1000);
+setInterval(()=>clock.innerText=new Date().toLocaleTimeString(),1000);
 </script>
 
 </body>
 </html>
+
 
 
