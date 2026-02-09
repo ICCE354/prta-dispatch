@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>PRTA Driver MDT</title>
@@ -8,30 +8,73 @@
 <style>
 body{
   margin:0;
-  font-family:Arial, sans-serif;
+  font-family:Arial, Helvetica, sans-serif;
   background:#020617;
   color:#e5e7eb;
 }
-.page{display:none;padding:20px}
-button,input{
+
+/* ===== LAYOUT ===== */
+.page{display:none;padding:14px}
+button{
   width:100%;
   padding:14px;
-  margin:10px 0;
-  background:#020617;
-  color:#e5e7eb;
-  border:2px solid #1f2937;
+  font-size:16px;
   border-radius:10px;
-  font-size:18px;
-}
-button{
+  border:2px solid #1f2937;
   background:#1e3a8a;
+  color:white;
   font-weight:bold;
 }
+button:active{transform:scale(0.98)}
 .grid{
   display:grid;
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:repeat(3,1fr);
   gap:12px;
 }
+.icon{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:90px;
+  background:#020617;
+}
+.icon span{
+  font-size:26px;
+}
+.icon small{
+  margin-top:6px;
+  font-size:13px;
+}
+
+/* ===== TOP BAR ===== */
+#topBar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#020617;
+  border-bottom:2px solid #2563eb;
+  padding:10px;
+  font-size:14px;
+}
+#topBar div{font-weight:bold}
+
+/* ===== BOTTOM LATE BAR ===== */
+#lateBar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  padding:12px;
+  text-align:center;
+  font-size:18px;
+  font-weight:bold;
+}
+.onTime{background:#064e3b}
+.warn{background:#92400e}
+.late{background:#7f1d1d}
+
+/* ===== TABLE ===== */
 table{
   width:100%;
   border-collapse:collapse;
@@ -42,238 +85,154 @@ th,td{
   text-align:center;
 }
 th{background:#020617}
-.box{
-  border:2px solid #2563eb;
-  padding:12px;
-  margin:12px 0;
+
+/* ===== NAV ===== */
+.backBtn{
+  margin-bottom:10px;
+  background:#020617;
 }
-#lateBanner{
-  position:fixed;
-  bottom:0;
-  left:0;
-  width:100%;
-  padding:12px;
-  text-align:center;
-  font-size:20px;
-  font-weight:bold;
-  display:none;
-}
-.late{background:#7f1d1d}
-.warn{background:#92400e}
-.ontime{background:#064e3b}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="loginPage" class="page" style="display:block">
-<h2>PRTA Driver Login</h2>
-<input id="username" placeholder="Driver ID">
-<input id="password" type="password" placeholder="Password">
-<input id="busInput" placeholder="Bus ID">
-<label><input type="checkbox" id="pt1"> Brakes</label>
-<label><input type="checkbox" id="pt2"> Doors</label>
-<label><input type="checkbox" id="pt3"> Lights</label>
-<button onclick="login()">Login</button>
+<!-- ===== TOP STATUS BAR ===== -->
+<div id="topBar">
+  <div>BUS 4172</div>
+  <div>ROUTE 1</div>
+  <div>RUN 302</div>
+  <div id="clock">--:--</div>
 </div>
 
-<!-- DRIVER HOME -->
-<div id="driverHome" class="page">
-<h2>Driver Home</h2>
-<div class="grid">
-  <button onclick="openSchedule()">📋 Schedule</button>
-  <button onclick="openPassenger()">👥 Passenger Count</button>
-  <button onclick="openAnnouncements()">📢 Announcements</button>
-  <button onclick="logout()">🚪 Log Out</button>
-</div>
-</div>
+<!-- ===== HOME ===== -->
+<div id="home" class="page" style="display:block">
+  <div class="grid">
 
-<!-- SCHEDULE -->
-<div id="schedulePage" class="page">
-<h2>Assigned Timepoints</h2>
-<button onclick="goHome()">⬅ Home</button>
-<table id="driverTable"></table>
-</div>
+    <button class="icon" onclick="show('rtt')">
+      <span>📻</span><small>RTT</small>
+    </button>
 
-<!-- PASSENGER COUNT -->
-<div id="passengerPage" class="page">
-<h2>Passenger Count</h2>
+    <button class="icon" onclick="show('schedule')">
+      <span>📋</span><small>Schedule</small>
+    </button>
 
-<div class="box">
-<h3>Boarded</h3>
-<button onclick="boarded++ ; updatePassenger()">+1</button>
-<button onclick="boarded=Math.max(0,boarded-1); updatePassenger()">-1</button>
-<p id="boardedCount">0</p>
-</div>
+    <button class="icon" onclick="show('annc')">
+      <span>📢</span><small>Announcements</small>
+    </button>
 
-<div class="box">
-<h3>Alighted</h3>
-<button onclick="alighted++ ; updatePassenger()">+1</button>
-<button onclick="alighted=Math.max(0,alighted-1); updatePassenger()">-1</button>
-<p id="alightedCount">0</p>
-</div>
+    <button class="icon" onclick="show('count')">
+      <span>👥</span><small>Passengers</small>
+    </button>
 
-<div class="box">
-<h3>Onboard</h3>
-<p id="onboardCount">0</p>
+    <button class="icon">
+      <span>⚙️</span><small>Setup</small>
+    </button>
+
+    <button class="icon">
+      <span>🛠️</span><small>Maintenance</small>
+    </button>
+
+    <button class="icon" onclick="logout()">
+      <span>🚪</span><small>Logout</small>
+    </button>
+
+  </div>
 </div>
 
-<button onclick="sendPassenger()">📤 Send to Dispatch</button>
-<button onclick="goHome()">⬅ Home</button>
+<!-- ===== RTT ===== -->
+<div id="rtt" class="page">
+  <button class="backBtn" onclick="goHome()">⬅ HOME</button>
+  <h3>Two-Way Radio</h3>
+
+  <button>Running Late</button>
+  <button>Traffic Delay</button>
+  <button>Mechanical Issue</button>
+  <button>Customer Declined Shoulder Strap</button>
+  <button>Operator Assistance Requested</button>
 </div>
 
-<!-- ANNOUNCEMENTS -->
-<div id="announcePage" class="page">
-<h2>Announcements</h2>
+<!-- ===== SCHEDULE ===== -->
+<div id="schedule" class="page">
+  <button class="backBtn" onclick="goHome()">⬅ HOME</button>
+  <h3>Schedule</h3>
 
-<button>🚶 Please Move to Rear</button>
-<button>🌙 Night Safety Message</button>
-<button>🚫 Do Not Talk to Operator</button>
-<button>♿ Accessible Seating Reminder</button>
-
-<button onclick="goHome()">⬅ Home</button>
+  <table>
+    <tr><th>Stop</th><th>Time</th><th>Status</th></tr>
+    <tr><td>Terminal</td><td>15:30</td><td><button>Arrived</button></td></tr>
+    <tr><td>Main St</td><td>15:45</td><td><button>Arrived</button></td></tr>
+    <tr><td>Depot</td><td>16:00</td><td><button>Arrived</button></td></tr>
+  </table>
 </div>
 
-<div id="lateBanner"></div>
+<!-- ===== PASSENGER COUNT ===== -->
+<div id="count" class="page">
+  <button class="backBtn" onclick="goHome()">⬅ HOME</button>
+  <h3>Passenger Count</h3>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <button onclick="boarded++">Board +1</button>
+  <button onclick="alighted++">Alight +1</button>
+
+  <p>Boarded: <span id="b">0</span></p>
+  <p>Alighted: <span id="a">0</span></p>
+  <p>Onboard: <span id="o">0</span></p>
+</div>
+
+<!-- ===== ANNOUNCEMENTS ===== -->
+<div id="annc" class="page">
+  <button class="backBtn" onclick="goHome()">⬅ HOME</button>
+  <h3>Announcements</h3>
+
+  <button>Please move to the rear of the bus</button>
+  <button>Night safety message</button>
+  <button>Do not talk to operator</button>
+  <button>Accessible seating reminder</button>
+</div>
+
+<!-- ===== LATE BAR ===== -->
+<div id="lateBar" class="onTime">ON TIME</div>
 
 <script>
-firebase.initializeApp({
-  apiKey:"AIzaSyAQ0dtJowQk2aPV_laJNJoUZFJQLxEr9u0",
-  authDomain:"prta-dispatch.firebaseapp.com",
-  projectId:"prta-dispatch"
-});
-const db=firebase.firestore();
-
-const users={
-  "3675":{password:"SR"},
-  "3804":{password:"ER"}
-};
-
-let currentUser={}, currentBus="";
-let boarded=0, alighted=0;
-let lateTimer=null;
-
+/* ===== BASIC NAV ===== */
 function show(id){
-  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
-  document.getElementById(id).style.display="block";
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  document.getElementById(id).style.display='block';
 }
+function goHome(){show('home')}
+function logout(){alert("Logged out");}
 
-function login(){
-  if(!users[username.value]||users[username.value].password!==password.value){
-    alert("Invalid login"); return;
+/* ===== CLOCK ===== */
+setInterval(()=>{
+  const d=new Date();
+  clock.innerText=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+},1000);
+
+/* ===== PASSENGERS ===== */
+let boarded=0, alighted=0;
+setInterval(()=>{
+  b.innerText=boarded;
+  a.innerText=alighted;
+  o.innerText=Math.max(0,boarded-alighted);
+},500);
+
+/* ===== LATE SIM ===== */
+let mins=0;
+setInterval(()=>{
+  mins++;
+  if(mins<2){
+    lateBar.className="onTime";
+    lateBar.innerText="ON TIME";
+  }else if(mins<4){
+    lateBar.className="warn";
+    lateBar.innerText=`LATE ${mins} MIN`;
+  }else{
+    lateBar.className="late";
+    lateBar.innerText=`LATE ${mins} MIN`;
   }
-  if(!busInput.value||!(pt1.checked&&pt2.checked&&pt3.checked)){
-    alert("Pre-trip required"); return;
-  }
-  currentUser={username:username.value};
-  currentBus=busInput.value;
-  show("driverHome");
-  listenDriver();
-}
-
-function logout(){
-  clearInterval(lateTimer);
-  boarded=0; alighted=0; updatePassenger();
-  clearTrips();
-  show("loginPage");
-}
-
-function goHome(){show("driverHome")}
-function openSchedule(){show("schedulePage")}
-function openPassenger(){show("passengerPage")}
-function openAnnouncements(){show("announcePage")}
-
-function updatePassenger(){
-  boardedCount.innerText=boarded;
-  alightedCount.innerText=alighted;
-  onboardCount.innerText=Math.max(0,boarded-alighted);
-}
-
-async function sendPassenger(){
-  await db.collection("passengerReports").add({
-    driver:currentUser.username,
-    bus:currentBus,
-    boarded,
-    alighted,
-    onboard:Math.max(0,boarded-alighted),
-    time:new Date().toLocaleString()
-  });
-  alert("Passenger count sent");
-}
-
-function listenDriver(){
-  db.collection("schedules").doc(currentUser.username).collection("trips")
-  .onSnapshot(snap=>{
-    driverTable.innerHTML="<tr><th>Stop</th><th>Time</th><th>Status</th></tr>";
-    snap.forEach(doc=>{
-      const trip=doc.data();
-      startLate(trip);
-      trip.points.forEach((p,i)=>{
-        const r=driverTable.insertRow();
-        r.insertCell().innerText=p.label;
-        r.insertCell().innerText=p.time;
-        r.insertCell().innerHTML=p.arrived
-          ?`${p.status} (${p.delta}m)`
-          :`<button onclick="arrive('${doc.id}',${i})">Arrived</button>`;
-      });
-    });
-  });
-}
-
-async function arrive(id,i){
-  const ref=db.collection("schedules").doc(currentUser.username).collection("trips").doc(id);
-  const trip=(await ref.get()).data();
-  const now=new Date();
-  const [h,m]=trip.points[i].time.split(":").map(Number);
-  const sched=new Date(); sched.setHours(h,m,0,0);
-  const diff=Math.round((now-sched)/60000);
-  let status="On Time";
-  if(diff>=2) status="Late";
-  if(diff<=-2) status="Early";
-  trip.points[i]={...trip.points[i],arrived:true,delta:Math.abs(diff),status};
-  if(trip.points.every(p=>p.arrived)){
-    boarded=0; alighted=0; updatePassenger();
-    await ref.delete();
-    lateBanner.style.display="none";
-  } else {
-    await ref.update({points:trip.points});
-  }
-}
-
-function startLate(trip){
-  clearInterval(lateTimer);
-  lateTimer=setInterval(()=>{
-    const next=trip.points.find(p=>!p.arrived);
-    if(!next){lateBanner.style.display="none"; return;}
-    const [h,m]=next.time.split(":").map(Number);
-    const sched=new Date(); sched.setHours(h,m,0,0);
-    const diff=Math.round((new Date()-sched)/60000);
-    lateBanner.style.display="block";
-    if(diff<=0){
-      lateBanner.className="ontime";
-      lateBanner.innerText="ON TIME";
-    } else if(diff<3){
-      lateBanner.className="warn";
-      lateBanner.innerText=`LATE ${diff} MIN`;
-    } else {
-      lateBanner.className="late";
-      lateBanner.innerText=`LATE ${diff} MIN`;
-    }
-  },60000);
-}
-
-async function clearTrips(){
-  const ref=db.collection("schedules").doc(currentUser.username);
-  const snap=await ref.collection("trips").get();
-  snap.forEach(d=>d.ref.delete());
-  await ref.delete();
-}
+},60000);
 </script>
+
 </body>
 </html>
+
 
 
