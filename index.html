@@ -6,58 +6,80 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+/* ===== GLOBAL ===== */
 body{
   margin:0;
   font-family:Arial, Helvetica, sans-serif;
   background:#020617;
   color:#e5e7eb;
+  user-select:none;
 }
-
-/* ===== LAYOUT ===== */
-.page{display:none;padding:14px}
+.page{display:none;padding:12px}
 button{
   width:100%;
-  padding:14px;
-  font-size:16px;
-  border-radius:10px;
-  border:2px solid #1f2937;
-  background:#1e3a8a;
+  padding:12px;
+  font-size:15px;
+  border-radius:8px;
+  border:1px solid #1f2937;
+  background:#1e40af;
   color:white;
   font-weight:bold;
 }
-button:active{transform:scale(0.98)}
+button:active{transform:scale(0.97)}
+.hidden{display:none}
+
+/* ===== TOP BAR (MATCHED) ===== */
+#topBar{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr auto;
+  gap:6px;
+  align-items:center;
+  background:#0b1220;
+  border-bottom:2px solid #2563eb;
+  padding:8px 10px;
+  font-size:13px;
+}
+.topBox{
+  background:#020617;
+  border:1px solid #1f2937;
+  padding:6px;
+  text-align:center;
+  font-weight:bold;
+}
+
+/* ===== HOME GRID (TRAPEZE STYLE) ===== */
 .grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:12px;
+  gap:10px;
+  margin-top:14px;
 }
-.icon{
+.tile{
+  height:92px;
+  background:#020617;
+  border:2px solid #1f2937;
+  border-radius:10px;
   display:flex;
   flex-direction:column;
-  align-items:center;
   justify-content:center;
-  height:90px;
-  background:#020617;
-}
-.icon span{
-  font-size:26px;
-}
-.icon small{
-  margin-top:6px;
-  font-size:13px;
-}
-
-/* ===== TOP BAR ===== */
-#topBar{
-  display:flex;
-  justify-content:space-between;
   align-items:center;
-  background:#020617;
-  border-bottom:2px solid #2563eb;
-  padding:10px;
+}
+.tile span{font-size:26px}
+.tile small{margin-top:6px;font-size:12px}
+
+/* ===== TABLE ===== */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+th,td{
+  border:1px solid #1f2937;
+  padding:8px;
+  text-align:center;
   font-size:14px;
 }
-#topBar div{font-weight:bold}
+th{background:#0b1220}
 
 /* ===== BOTTOM LATE BAR ===== */
 #lateBar{
@@ -66,29 +88,17 @@ button:active{transform:scale(0.98)}
   left:0;
   width:100%;
   padding:12px;
-  text-align:center;
   font-size:18px;
   font-weight:bold;
+  text-align:center;
 }
 .onTime{background:#064e3b}
 .warn{background:#92400e}
 .late{background:#7f1d1d}
 
-/* ===== TABLE ===== */
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-th,td{
-  border:1px solid #1f2937;
-  padding:8px;
-  text-align:center;
-}
-th{background:#020617}
-
-/* ===== NAV ===== */
+/* ===== BACK BUTTON ===== */
 .backBtn{
-  margin-bottom:10px;
+  margin-bottom:8px;
   background:#020617;
 }
 </style>
@@ -98,43 +108,43 @@ th{background:#020617}
 
 <!-- ===== TOP STATUS BAR ===== -->
 <div id="topBar">
-  <div>BUS 4172</div>
-  <div>ROUTE 1</div>
-  <div>RUN 302</div>
-  <div id="clock">--:--</div>
+  <div class="topBox">BUS <span id="bus">4172</span></div>
+  <div class="topBox">ROUTE <span id="route">1</span></div>
+  <div class="topBox">RUN <span id="run">302</span></div>
+  <div class="topBox" id="clock">--:--</div>
 </div>
 
 <!-- ===== HOME ===== -->
 <div id="home" class="page" style="display:block">
   <div class="grid">
 
-    <button class="icon" onclick="show('rtt')">
+    <div class="tile" onclick="show('rtt')">
       <span>📻</span><small>RTT</small>
-    </button>
+    </div>
 
-    <button class="icon" onclick="show('schedule')">
+    <div class="tile" onclick="show('schedule')">
       <span>📋</span><small>Schedule</small>
-    </button>
+    </div>
 
-    <button class="icon" onclick="show('annc')">
-      <span>📢</span><small>Announcements</small>
-    </button>
+    <div class="tile" onclick="show('annc')">
+      <span>📢</span><small>ANNC</small>
+    </div>
 
-    <button class="icon" onclick="show('count')">
+    <div class="tile" onclick="show('count')">
       <span>👥</span><small>Passengers</small>
-    </button>
+    </div>
 
-    <button class="icon">
+    <div class="tile">
       <span>⚙️</span><small>Setup</small>
-    </button>
+    </div>
 
-    <button class="icon">
+    <div class="tile">
       <span>🛠️</span><small>Maintenance</small>
-    </button>
+    </div>
 
-    <button class="icon" onclick="logout()">
-      <span>🚪</span><small>Logout</small>
-    </button>
+    <div class="tile" onclick="logout()">
+      <span>🚪</span><small>Log Out</small>
+    </div>
 
   </div>
 </div>
@@ -142,8 +152,6 @@ th{background:#020617}
 <!-- ===== RTT ===== -->
 <div id="rtt" class="page">
   <button class="backBtn" onclick="goHome()">⬅ HOME</button>
-  <h3>Two-Way Radio</h3>
-
   <button>Running Late</button>
   <button>Traffic Delay</button>
   <button>Mechanical Issue</button>
@@ -154,24 +162,14 @@ th{background:#020617}
 <!-- ===== SCHEDULE ===== -->
 <div id="schedule" class="page">
   <button class="backBtn" onclick="goHome()">⬅ HOME</button>
-  <h3>Schedule</h3>
-
-  <table>
-    <tr><th>Stop</th><th>Time</th><th>Status</th></tr>
-    <tr><td>Terminal</td><td>15:30</td><td><button>Arrived</button></td></tr>
-    <tr><td>Main St</td><td>15:45</td><td><button>Arrived</button></td></tr>
-    <tr><td>Depot</td><td>16:00</td><td><button>Arrived</button></td></tr>
-  </table>
+  <table id="schedTable"></table>
 </div>
 
-<!-- ===== PASSENGER COUNT ===== -->
+<!-- ===== PASSENGERS ===== -->
 <div id="count" class="page">
   <button class="backBtn" onclick="goHome()">⬅ HOME</button>
-  <h3>Passenger Count</h3>
-
   <button onclick="boarded++">Board +1</button>
   <button onclick="alighted++">Alight +1</button>
-
   <p>Boarded: <span id="b">0</span></p>
   <p>Alighted: <span id="a">0</span></p>
   <p>Onboard: <span id="o">0</span></p>
@@ -180,25 +178,23 @@ th{background:#020617}
 <!-- ===== ANNOUNCEMENTS ===== -->
 <div id="annc" class="page">
   <button class="backBtn" onclick="goHome()">⬅ HOME</button>
-  <h3>Announcements</h3>
-
   <button>Please move to the rear of the bus</button>
   <button>Night safety message</button>
   <button>Do not talk to operator</button>
   <button>Accessible seating reminder</button>
 </div>
 
-<!-- ===== LATE BAR ===== -->
+<!-- ===== BOTTOM BAR ===== -->
 <div id="lateBar" class="onTime">ON TIME</div>
 
 <script>
-/* ===== BASIC NAV ===== */
+/* ===== NAV ===== */
 function show(id){
   document.querySelectorAll('.page').forEach(p=>p.style.display='none');
   document.getElementById(id).style.display='block';
 }
 function goHome(){show('home')}
-function logout(){alert("Logged out");}
+function logout(){alert("Logged out")}
 
 /* ===== CLOCK ===== */
 setInterval(()=>{
@@ -214,21 +210,62 @@ setInterval(()=>{
   o.innerText=Math.max(0,boarded-alighted);
 },500);
 
-/* ===== LATE SIM ===== */
-let mins=0;
+/* ===== REAL SCHEDULE DATA ===== */
+let trip = [
+  {stop:"Terminal", time:"15:30", arrived:false},
+  {stop:"Main St", time:"15:45", arrived:false},
+  {stop:"Depot", time:"16:00", arrived:false}
+];
+
+/* ===== RENDER SCHEDULE ===== */
+function renderSchedule(){
+  schedTable.innerHTML="<tr><th>Stop</th><th>Time</th><th>Status</th></tr>";
+  trip.forEach((p,i)=>{
+    const r=schedTable.insertRow();
+    r.insertCell().innerText=p.stop;
+    r.insertCell().innerText=p.time;
+    r.insertCell().innerHTML=p.arrived
+      ? "Arrived"
+      : `<button onclick="arrive(${i})">Arrived</button>`;
+  });
+}
+renderSchedule();
+
+/* ===== ARRIVE ===== */
+function arrive(i){
+  trip[i].arrived=true;
+  renderSchedule();
+  if(trip.every(p=>p.arrived)){
+    trip=[];
+    schedTable.innerHTML="<tr><td colspan='3'>No Active Trip</td></tr>";
+    lateBar.innerText="ON TIME";
+    lateBar.className="onTime";
+  }
+}
+
+/* ===== REAL LATENESS CALC ===== */
 setInterval(()=>{
-  mins++;
-  if(mins<2){
+  const next = trip.find(p=>!p.arrived);
+  if(!next){
+    lateBar.innerText="ON TIME";
+    lateBar.className="onTime";
+    return;
+  }
+  const [h,m]=next.time.split(":").map(Number);
+  const sched=new Date(); sched.setHours(h,m,0,0);
+  const diff=Math.round((new Date()-sched)/60000);
+
+  if(diff<=0){
     lateBar.className="onTime";
     lateBar.innerText="ON TIME";
-  }else if(mins<4){
+  }else if(diff<=2){
     lateBar.className="warn";
-    lateBar.innerText=`LATE ${mins} MIN`;
+    lateBar.innerText=`LATE ${diff} MIN`;
   }else{
     lateBar.className="late";
-    lateBar.innerText=`LATE ${mins} MIN`;
+    lateBar.innerText=`LATE ${diff} MIN`;
   }
-},60000);
+},30000);
 </script>
 
 </body>
