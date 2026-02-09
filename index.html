@@ -2,23 +2,65 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PRTA Dispatch System</title>
+<title>PRTA Driver MDT</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body{margin:0;font-family:Arial;background:#020617;color:#e5e7eb}
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#020617;
+  color:#e5e7eb;
+}
 .page{display:none;padding:20px}
-input,textarea,button{width:100%;padding:8px;margin:6px 0;background:#020617;color:#e5e7eb;border:1px solid #1f2937;border-radius:6px}
-button{background:#2563eb;font-weight:bold;cursor:pointer}
-table{width:100%;border-collapse:collapse}
-th,td{border:1px solid #1f2937;padding:6px;text-align:center}
+button,input{
+  width:100%;
+  padding:14px;
+  margin:10px 0;
+  background:#020617;
+  color:#e5e7eb;
+  border:2px solid #1f2937;
+  border-radius:10px;
+  font-size:18px;
+}
+button{
+  background:#1e3a8a;
+  font-weight:bold;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid #1f2937;
+  padding:8px;
+  text-align:center;
+}
 th{background:#020617}
+.box{
+  border:2px solid #2563eb;
+  padding:12px;
+  margin:12px 0;
+}
+#lateBanner{
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  padding:12px;
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+  display:none;
+}
 .late{background:#7f1d1d}
-.early{background:#1e3a8a}
+.warn{background:#92400e}
 .ontime{background:#064e3b}
-.box{border:2px solid #2563eb;padding:12px;margin:12px 0}
-.msgPending{background:#7c2d12}
-.msgAck{background:#064e3b}
 </style>
 </head>
 
@@ -26,84 +68,79 @@ th{background:#020617}
 
 <!-- LOGIN -->
 <div id="loginPage" class="page" style="display:block">
-<h2>PRTA Secure Login</h2>
-<input id="username" placeholder="Username">
+<h2>PRTA Driver Login</h2>
+<input id="username" placeholder="Driver ID">
 <input id="password" type="password" placeholder="Password">
-<input id="busInput" placeholder="Bus ID (drivers)">
+<input id="busInput" placeholder="Bus ID">
 <label><input type="checkbox" id="pt1"> Brakes</label>
 <label><input type="checkbox" id="pt2"> Doors</label>
 <label><input type="checkbox" id="pt3"> Lights</label>
 <button onclick="login()">Login</button>
 </div>
 
-<!-- DRIVER -->
-<div id="driverPage" class="page">
-<h2>Driver MDT</h2>
-<button onclick="logout()">Logout</button>
-
-<div class="box">
-<h3>Radio Messages</h3>
-<button onclick="sendMsg('Running Late')">Running Late</button>
-<button onclick="sendMsg('Traffic Delay')">Traffic Delay</button>
-<button onclick="sendMsg('Mechanical Issue')">Mechanical Issue</button>
-<button onclick="sendMsg('Customer Declined Shoulder Strap')">Customer Declined Shoulder Strap</button>
-<button onclick="sendMsg('Operator Assistance Requested')">Operator Assistance Requested</button>
+<!-- DRIVER HOME -->
+<div id="driverHome" class="page">
+<h2>Driver Home</h2>
+<div class="grid">
+  <button onclick="openSchedule()">📋 Schedule</button>
+  <button onclick="openPassenger()">👥 Passenger Count</button>
+  <button onclick="openAnnouncements()">📢 Announcements</button>
+  <button onclick="logout()">🚪 Log Out</button>
+</div>
 </div>
 
+<!-- SCHEDULE -->
+<div id="schedulePage" class="page">
+<h2>Assigned Timepoints</h2>
+<button onclick="goHome()">⬅ Home</button>
 <table id="driverTable"></table>
 </div>
 
-<!-- DISPATCH -->
-<div id="dispatcherPage" class="page">
-<h2>Dispatcher</h2>
-<button onclick="logout()">Logout</button>
+<!-- PASSENGER COUNT -->
+<div id="passengerPage" class="page">
+<h2>Passenger Count</h2>
 
 <div class="box">
-<h3>Create Schedule</h3>
-<input id="schDriver" placeholder="Driver">
-<input id="schBus" placeholder="Bus">
-<textarea id="schPoints" placeholder="StopA 15:30 | StopB 15:45"></textarea>
-<button onclick="createSchedule()">Assign</button>
+<h3>Boarded</h3>
+<button onclick="boarded++ ; updatePassenger()">+1</button>
+<button onclick="boarded=Math.max(0,boarded-1); updatePassenger()">-1</button>
+<p id="boardedCount">0</p>
 </div>
 
 <div class="box">
-<h3>⚠️ Dispatch Controls</h3>
-<button onclick="wipeLogs()">🗑️ Wipe Logs Now</button>
+<h3>Alighted</h3>
+<button onclick="alighted++ ; updatePassenger()">+1</button>
+<button onclick="alighted=Math.max(0,alighted-1); updatePassenger()">-1</button>
+<p id="alightedCount">0</p>
 </div>
 
-<h3>Incoming Messages</h3>
-<table id="msgTable"></table>
-
-<h3>Live Board</h3>
-<table id="dispatchBoard"></table>
+<div class="box">
+<h3>Onboard</h3>
+<p id="onboardCount">0</p>
 </div>
 
-<!-- SUPERVISOR -->
-<div id="supervisorPage" class="page">
-<h2>Supervisor</h2>
-<button onclick="logout()">Logout</button>
-
-<h3>Messages</h3>
-<table id="msgTableSup"></table>
-
-<h3>Live Board</h3>
-<table id="supervisorBoard"></table>
+<button onclick="sendPassenger()">📤 Send to Dispatch</button>
+<button onclick="goHome()">⬅ Home</button>
 </div>
+
+<!-- ANNOUNCEMENTS -->
+<div id="announcePage" class="page">
+<h2>Announcements</h2>
+
+<button>🚶 Please Move to Rear</button>
+<button>🌙 Night Safety Message</button>
+<button>🚫 Do Not Talk to Operator</button>
+<button>♿ Accessible Seating Reminder</button>
+
+<button onclick="goHome()">⬅ Home</button>
+</div>
+
+<div id="lateBanner"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-/* ===== SHIFT END CONFIG ===== */
-const SHIFT_END_HOUR = 23;
-const SHIFT_END_MINUTE = 59;
-
-/* ===== DEPARTURE SOUND (DRIVER ONLY) ===== */
-const departSound=new Audio("Timetodepart.wav");
-let audioUnlocked=false;
-document.addEventListener("click",()=>audioUnlocked=true,{once:true});
-
-/* ===== FIREBASE ===== */
 firebase.initializeApp({
   apiKey:"AIzaSyAQ0dtJowQk2aPV_laJNJoUZFJQLxEr9u0",
   authDomain:"prta-dispatch.firebaseapp.com",
@@ -111,132 +148,80 @@ firebase.initializeApp({
 });
 const db=firebase.firestore();
 
-/* ===== USERS ===== */
 const users={
-  dispatcher:{password:"admin",role:"dispatcher"},
-  D01:{password:"DISP1",role:"dispatcher"},
-  U11:{password:"BIGT",role:"supervisor"},
-  SUP1:{password:"SUP1",role:"supervisor"},
-  "3675":{password:"SR",role:"driver"},
-  "3804":{password:"ER",role:"driver"}
+  "3675":{password:"SR"},
+  "3804":{password:"ER"}
 };
 
-let currentUser={},currentBus="";
-let unsubBoard=null;
+let currentUser={}, currentBus="";
+let boarded=0, alighted=0;
+let lateTimer=null;
 
-/* ===== UI ===== */
 function show(id){
   document.querySelectorAll(".page").forEach(p=>p.style.display="none");
   document.getElementById(id).style.display="block";
 }
 
-/* ===== LOGIN ===== */
 function login(){
-  const u=username.value.trim(),p=password.value.trim();
-  if(!users[u]||users[u].password!==p){alert("Invalid login");return;}
-  if(users[u].role==="driver"){
-    if(!busInput.value||!(pt1.checked&&pt2.checked&&pt3.checked)){
-      alert("Pre-trip required");return;
-    }
+  if(!users[username.value]||users[username.value].password!==password.value){
+    alert("Invalid login"); return;
   }
-  currentUser={username:u,role:users[u].role};
-  currentBus=busInput.value||"";
-
-  if(currentUser.role==="driver"){show("driverPage");listenDriver();}
-  if(currentUser.role==="dispatcher"){
-    show("dispatcherPage");
-    listenBoard("dispatchBoard");
-    listenMessages();
-    startShiftEndWatcher();
+  if(!busInput.value||!(pt1.checked&&pt2.checked&&pt3.checked)){
+    alert("Pre-trip required"); return;
   }
-  if(currentUser.role==="supervisor"){
-    show("supervisorPage");
-    listenBoard("supervisorBoard");
-    listenMessagesSup();
-  }
+  currentUser={username:username.value};
+  currentBus=busInput.value;
+  show("driverHome");
+  listenDriver();
 }
 
-/* ===== LOGOUT ===== */
-async function logout(){
-  if(unsubBoard)unsubBoard();
-  if(currentUser.role==="driver"){
-    const ref=db.collection("schedules").doc(currentUser.username);
-    const snap=await ref.collection("trips").get();
-    snap.forEach(d=>d.ref.delete());
-    await ref.delete();
-  }
-  currentUser={};
+function logout(){
+  clearInterval(lateTimer);
+  boarded=0; alighted=0; updatePassenger();
+  clearTrips();
   show("loginPage");
 }
 
-/* ===== AUTO SHIFT END WIPE ===== */
-function startShiftEndWatcher(){
-  setInterval(async()=>{
-    if(currentUser.role!=="dispatcher")return;
-    const now=new Date();
-    const today=now.toISOString().split("T")[0];
-    if(now.getHours()!==SHIFT_END_HOUR||now.getMinutes()!==SHIFT_END_MINUTE)return;
+function goHome(){show("driverHome")}
+function openSchedule(){show("schedulePage")}
+function openPassenger(){show("passengerPage")}
+function openAnnouncements(){show("announcePage")}
 
-    const flag=db.collection("system").doc("shiftWipe");
-    const snap=await flag.get();
-    if(snap.exists&&snap.data().last===today)return;
-
-    await wipeLogs(false);
-    await flag.set({last:today});
-    alert("Shift ended. Logs wiped.");
-  },60000);
+function updatePassenger(){
+  boardedCount.innerText=boarded;
+  alightedCount.innerText=alighted;
+  onboardCount.innerText=Math.max(0,boarded-alighted);
 }
 
-/* ===== MANUAL WIPE ===== */
-async function wipeLogs(confirmUser=true){
-  if(confirmUser&&!confirm("Delete ALL logs and trips?"))return;
-  const msgs=await db.collection("messages").get();
-  msgs.forEach(d=>d.ref.delete());
-  const scheds=await db.collection("schedules").get();
-  for(const d of scheds.docs){
-    const trips=await d.ref.collection("trips").get();
-    trips.forEach(t=>t.ref.delete());
-    await d.ref.delete();
-  }
-}
-
-/* ===== SCHEDULE ===== */
-async function createSchedule(){
-  const points=schPoints.value.split("|").map(p=>{
-    const a=p.trim().split(" ");
-    const t=a.pop();
-    return{label:a.join(" "),time:t,arrived:false,alerted:false,delta:null,status:null};
+async function sendPassenger(){
+  await db.collection("passengerReports").add({
+    driver:currentUser.username,
+    bus:currentBus,
+    boarded,
+    alighted,
+    onboard:Math.max(0,boarded-alighted),
+    time:new Date().toLocaleString()
   });
-  await db.collection("schedules").doc(schDriver.value.trim()).collection("trips")
-    .add({bus:schBus.value.trim(),points});
-  schPoints.value="";
+  alert("Passenger count sent");
 }
 
-/* ===== DRIVER ===== */
 function listenDriver(){
   db.collection("schedules").doc(currentUser.username).collection("trips")
-    .onSnapshot(snap=>{
-      driverTable.innerHTML="<tr><th>Stop</th><th>Time</th><th>Status</th></tr>";
-      snap.forEach(doc=>{
-        const trip=doc.data();
-        trip.points.forEach((p,i)=>{
-          const now=new Date();
-          const [h,m]=p.time.split(":").map(Number);
-          const sched=new Date();sched.setHours(h,m,0,0);
-          if(!p.arrived&&!p.alerted&&now>=sched&&audioUnlocked){
-            departSound.play().catch(()=>{});
-            p.alerted=true;
-            doc.ref.update({points:trip.points});
-          }
-          const r=driverTable.insertRow();
-          r.insertCell().innerText=p.label;
-          r.insertCell().innerText=p.time;
-          r.insertCell().innerHTML=p.arrived
-            ?`${p.status} (${p.delta}m)`
-            :`<button onclick="arrive('${doc.id}',${i})">Arrived</button>`;
-        });
+  .onSnapshot(snap=>{
+    driverTable.innerHTML="<tr><th>Stop</th><th>Time</th><th>Status</th></tr>";
+    snap.forEach(doc=>{
+      const trip=doc.data();
+      startLate(trip);
+      trip.points.forEach((p,i)=>{
+        const r=driverTable.insertRow();
+        r.insertCell().innerText=p.label;
+        r.insertCell().innerText=p.time;
+        r.insertCell().innerHTML=p.arrived
+          ?`${p.status} (${p.delta}m)`
+          :`<button onclick="arrive('${doc.id}',${i})">Arrived</button>`;
       });
     });
+  });
 }
 
 async function arrive(id,i){
@@ -244,77 +229,51 @@ async function arrive(id,i){
   const trip=(await ref.get()).data();
   const now=new Date();
   const [h,m]=trip.points[i].time.split(":").map(Number);
-  const sched=new Date();sched.setHours(h,m,0,0);
+  const sched=new Date(); sched.setHours(h,m,0,0);
   const diff=Math.round((now-sched)/60000);
   let status="On Time";
-  if(diff>=2)status="Late";
-  if(diff<=-2)status="Early";
+  if(diff>=2) status="Late";
+  if(diff<=-2) status="Early";
   trip.points[i]={...trip.points[i],arrived:true,delta:Math.abs(diff),status};
-  if(trip.points.every(p=>p.arrived))await ref.delete();
-  else await ref.update({points:trip.points});
+  if(trip.points.every(p=>p.arrived)){
+    boarded=0; alighted=0; updatePassenger();
+    await ref.delete();
+    lateBanner.style.display="none";
+  } else {
+    await ref.update({points:trip.points});
+  }
 }
 
-/* ===== BOARD ===== */
-function listenBoard(id){
-  const t=document.getElementById(id);
-  unsubBoard=db.collection("schedules").onSnapshot(async snap=>{
-    t.innerHTML="<tr><th>Driver</th><th>Status</th></tr>";
-    for(const d of snap.docs){
-      const trips=await d.ref.collection("trips").get();
-      trips.forEach(tr=>{
-        const r=t.insertRow();
-        r.insertCell().innerText=d.id;
-        r.insertCell().innerText=tr.data().points.map(p=>{
-          if(!p.arrived)return"⚪";
-          if(p.status==="Late")return`🔴 +${p.delta}`;
-          if(p.status==="Early")return`🔵 -${p.delta}`;
-          return"🟢 0";
-        }).join(" ");
-      });
+function startLate(trip){
+  clearInterval(lateTimer);
+  lateTimer=setInterval(()=>{
+    const next=trip.points.find(p=>!p.arrived);
+    if(!next){lateBanner.style.display="none"; return;}
+    const [h,m]=next.time.split(":").map(Number);
+    const sched=new Date(); sched.setHours(h,m,0,0);
+    const diff=Math.round((new Date()-sched)/60000);
+    lateBanner.style.display="block";
+    if(diff<=0){
+      lateBanner.className="ontime";
+      lateBanner.innerText="ON TIME";
+    } else if(diff<3){
+      lateBanner.className="warn";
+      lateBanner.innerText=`LATE ${diff} MIN`;
+    } else {
+      lateBanner.className="late";
+      lateBanner.innerText=`LATE ${diff} MIN`;
     }
-  });
+  },60000);
 }
 
-/* ===== MESSAGING ===== */
-async function sendMsg(text){
-  await db.collection("messages").add({
-    driver:currentUser.username,
-    bus:currentBus,
-    text,
-    status:"Pending",
-    time:new Date().toLocaleTimeString()
-  });
-}
-
-function listenMessages(){
-  db.collection("messages").onSnapshot(snap=>{
-    msgTable.innerHTML="<tr><th>Driver</th><th>Bus</th><th>Message</th><th>Status</th></tr>";
-    snap.forEach(doc=>{
-      const m=doc.data(),r=msgTable.insertRow();
-      r.className=m.status==="Pending"?"msgPending":"msgAck";
-      r.insertCell().innerText=m.driver;
-      r.insertCell().innerText=m.bus;
-      r.insertCell().innerText=`${m.text} (${m.time})`;
-      r.insertCell().innerHTML=m.status==="Pending"
-        ?`<button onclick="db.collection('messages').doc('${doc.id}').update({status:'Acknowledged'})">Ack</button>`
-        :"Acknowledged";
-    });
-  });
-}
-
-function listenMessagesSup(){
-  db.collection("messages").onSnapshot(snap=>{
-    msgTableSup.innerHTML="<tr><th>Driver</th><th>Bus</th><th>Message</th><th>Status</th></tr>";
-    snap.forEach(doc=>{
-      const m=doc.data(),r=msgTableSup.insertRow();
-      r.className=m.status==="Pending"?"msgPending":"msgAck";
-      r.insertCell().innerText=m.driver;
-      r.insertCell().innerText=m.bus;
-      r.insertCell().innerText=`${m.text} (${m.time})`;
-      r.insertCell().innerText=m.status;
-    });
-  });
+async function clearTrips(){
+  const ref=db.collection("schedules").doc(currentUser.username);
+  const snap=await ref.collection("trips").get();
+  snap.forEach(d=>d.ref.delete());
+  await ref.delete();
 }
 </script>
 </body>
 </html>
+
+
