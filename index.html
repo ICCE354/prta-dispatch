@@ -13,13 +13,8 @@ body{
   background:#9fd3ff;
   color:white;
 }
-button,select,input,textarea{
-  font-weight:bold;
-  padding:8px;
-}
-button{cursor:pointer}
 
-/* ===== LOGIN ===== */
+/* LOGIN */
 #loginPage{
   height:100vh;
   display:flex;
@@ -32,21 +27,23 @@ button{cursor:pointer}
   background:#0b2e63;
   border-radius:10px;
 }
+.loginBox h2{text-align:center}
 .loginBox input{
   width:100%;
-  margin-bottom:12px;
   padding:14px;
+  margin-bottom:12px;
 }
 .loginBox button{
   width:100%;
+  padding:14px;
   background:#1e88e5;
   border:none;
   color:white;
-  padding:14px;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-/* ===== PAGES ===== */
-.page{display:none}
+/* TOP BAR */
 .topBar{
   background:#0b2e63;
   padding:12px;
@@ -54,10 +51,30 @@ button{cursor:pointer}
   justify-content:space-between;
   align-items:center;
 }
+
+/* LAYOUT */
+.main{
+  display:flex;
+  height:calc(100vh - 110px);
+}
+.sideBar{
+  width:200px;
+  background:#0b2e63;
+  padding:10px;
+}
+.sideBtn{
+  width:100%;
+  padding:12px;
+  margin-bottom:10px;
+  background:#123d7a;
+  border:2px solid #5fb0ff;
+  color:white;
+  font-weight:bold;
+}
 .content{
+  flex:1;
   padding:15px;
   background:#0a2a5c;
-  min-height:calc(100vh - 60px);
 }
 .panel{
   background:#103b7a;
@@ -66,30 +83,56 @@ button{cursor:pointer}
   margin-bottom:15px;
 }
 
-/* ===== TABLE ===== */
+/* TABLE */
 table{
   width:100%;
   border-collapse:collapse;
 }
 th,td{
   border:1px solid #5fb0ff;
-  padding:6px;
+  padding:8px;
   text-align:center;
 }
 th{background:#123d7a}
-
-/* ===== MESSAGE STATUS ===== */
-.pending{background:#7c2d12}
-.ack{background:#0f7a3c}
-.msgBox{
-  max-height:200px;
-  overflow-y:auto;
-  font-size:14px;
+.arriveBtn{
+  background:#1d4ed8;
+  border:1px solid #5fb0ff;
+  padding:6px;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
 }
+
+/* SYSTEM BAR */
+.systemBar{
+  height:40px;
+  background:#0f7a3c;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 15px;
+  font-weight:bold;
+}
+.systemBar.late{background:#b91c1c}
+
+/* MESSAGE LOG */
+.msgLog{
+  font-size:14px;
+  max-height:120px;
+  overflow-y:auto;
+}
+
+/* PAGES */
+.page{display:none}
 </style>
 </head>
 
 <body>
+
+<!-- 🔊 DEPARTURE BEEP -->
+<audio id="tripBeep">
+  <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=" type="audio/wav">
+</audio>
 
 <!-- LOGIN -->
 <div id="loginPage">
@@ -107,62 +150,50 @@ th{background:#123d7a}
     <strong>DRIVER MDT</strong>
     <button onclick="logout()">LOG OUT</button>
   </div>
-  <div class="content">
-    <div class="panel">
-      <h3>Send Message to Dispatch</h3>
-      <button onclick="sendDriverMsg('Running Late')">Running Late</button>
-      <button onclick="sendDriverMsg('Traffic Delay')">Traffic Delay</button>
-      <button onclick="sendDriverMsg('Mechanical Issue')">Mechanical Issue</button>
-      <button onclick="sendDriverMsg('Operator Assistance Requested')">Operator Assistance Requested</button>
-      <button onclick="sendDriverMsg('Customer Declined Shoulder Strap')">
-        Customer Declined Shoulder Strap
-      </button>
+
+  <div class="main">
+    <div class="sideBar">
+      <button class="sideBtn">HEADSIGN</button>
+      <button class="sideBtn">CARD INFO</button>
+      <button class="sideBtn">SETUP</button>
+      <button class="sideBtn">MAINT</button>
     </div>
 
-    <div class="panel">
-      <h3>Messages from Dispatch</h3>
-      <div class="msgBox" id="driverInbox"></div>
+    <div class="content">
+
+      <!-- SCHEDULE -->
+      <div class="panel">
+        <h3>SCHEDULE</h3>
+        <table id="driverTable"></table>
+      </div>
+
+      <!-- PASSENGERS -->
+      <div class="panel">
+        <h3>PASSENGER COUNT</h3>
+        <p>Total Onboard: <strong id="paxCount">0</strong></p>
+        <button class="arriveBtn" onclick="board()">+ Board</button>
+        <button class="arriveBtn" onclick="alight()">− Alight</button>
+      </div>
+
+      <!-- CANNED MESSAGES -->
+      <div class="panel">
+        <h3>DISPATCH MESSAGES</h3>
+        <button class="arriveBtn" onclick="sendMsg('Running Late')">Running Late</button>
+        <button class="arriveBtn" onclick="sendMsg('Traffic Delay')">Traffic Delay</button>
+        <button class="arriveBtn" onclick="sendMsg('Mechanical Issue')">Mechanical Issue</button>
+        <button class="arriveBtn" onclick="sendMsg('Operator Assistance Requested')">Operator Assistance Requested</button>
+        <button class="arriveBtn" onclick="sendMsg('Customer Declined Shoulder Strap')">
+          Customer Declined Shoulder Strap
+        </button>
+        <div class="msgLog" id="msgLog"></div>
+      </div>
+
     </div>
   </div>
-</div>
 
-<!-- DISPATCHER -->
-<div id="dispatcherPage" class="page">
-  <div class="topBar">
-    <strong>DISPATCHER</strong>
-    <button onclick="logout()">LOG OUT</button>
-  </div>
-  <div class="content">
-
-    <div class="panel">
-      <h3>Send Message to Driver</h3>
-      <select id="dispatchDriver">
-        <option value="3675">3675</option>
-        <option value="3804">3804</option>
-      </select>
-      <textarea id="dispatchText" rows="3" placeholder="Type message"></textarea>
-      <button onclick="sendDispatchMsg()">SEND</button>
-    </div>
-
-    <div class="panel">
-      <h3>Driver Messages</h3>
-      <table id="dispatchMsgs"></table>
-    </div>
-
-  </div>
-</div>
-
-<!-- SUPERVISOR -->
-<div id="supervisorPage" class="page">
-  <div class="topBar">
-    <strong>SUPERVISOR</strong>
-    <button onclick="logout()">LOG OUT</button>
-  </div>
-  <div class="content">
-    <div class="panel">
-      <h3>All Messages</h3>
-      <div class="msgBox" id="supervisorInbox"></div>
-    </div>
+  <div id="systemBar" class="systemBar">
+    <span id="statusText">SYSTEMS OK</span>
+    <span id="clock"></span>
   </div>
 </div>
 
@@ -176,92 +207,133 @@ const users={
 };
 
 let currentUser=null;
-let messages=[];
+
+/* SCHEDULE WITH ALERT FLAGS */
+let driverSchedule=[
+  {stop:"Main St",time:"08:30",arrived:false,alerted:false},
+  {stop:"Broadway",time:"08:42",arrived:false,alerted:false},
+  {stop:"Depot",time:"08:55",arrived:false,alerted:false}
+];
+
+/* PASSENGERS */
+let passengers=0;
 
 /* LOGIN */
 function login(){
   const u=username.value.trim();
   const p=password.value.trim();
-  if(!users[u]||users[u].password!==p){alert("Invalid login");return;}
+  if(!users[u]||users[u].password!==p){
+    alert("Invalid login");return;
+  }
   currentUser={name:u,role:users[u].role};
   loginPage.style.display="none";
   if(currentUser.role==="driver") driverPage.style.display="block";
-  if(currentUser.role==="dispatcher") dispatcherPage.style.display="block";
-  if(currentUser.role==="supervisor") supervisorPage.style.display="block";
-  renderMessages();
+  renderDriver();
 }
+
+/* LOGOUT */
 function logout(){location.reload();}
 
-/* DRIVER SEND */
-function sendDriverMsg(text){
-  messages.push({
-    from:currentUser.name,
-    to:"dispatch",
-    text,
-    time:new Date().toLocaleTimeString(),
-    status:"Pending"
+/* RENDER DRIVER */
+function renderDriver(){
+  driverTable.innerHTML="<tr><th>STOP</th><th>TIME</th><th>STATUS</th></tr>";
+  driverSchedule.forEach((s,i)=>{
+    const r=driverTable.insertRow();
+    r.insertCell().innerText=s.stop;
+    r.insertCell().innerText=s.time;
+    const c=r.insertCell();
+    if(!s.arrived){
+      c.innerHTML=`<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
+    }else{
+      c.innerText=s.status;
+    }
   });
-  renderMessages();
 }
 
-/* DISPATCH SEND */
-function sendDispatchMsg(){
-  if(!dispatchText.value)return;
-  messages.push({
-    from:"dispatch",
-    to:dispatchDriver.value,
-    text:dispatchText.value,
-    time:new Date().toLocaleTimeString(),
-    status:"Sent"
+/* ARRIVE */
+function arrive(i){
+  const s=driverSchedule[i];
+  const now=new Date();
+  const [h,m]=s.time.split(":").map(Number);
+  const sched=new Date();sched.setHours(h,m,0,0);
+  const diff=Math.round((now-sched)/60000);
+
+  s.arrived=true;
+  s.status=diff>1?`LATE +${diff} MIN`:diff<-1?`EARLY ${-diff} MIN`:"ON TIME";
+
+  if(driverSchedule.every(x=>x.arrived)){
+    driverSchedule=[];
+    passengers=0;
+    paxCount.innerText=passengers;
+  }
+
+  renderDriver();
+  updateSystemBar();
+}
+
+/* 🔔 DEPARTURE BEEP CHECK */
+function checkDepartureBeep(){
+  const next=driverSchedule.find(s=>!s.arrived);
+  if(!next || next.alerted) return;
+
+  const [h,m]=next.time.split(":").map(Number);
+  const sched=new Date();
+  sched.setHours(h,m,0,0);
+
+  if(new Date()>=sched){
+    next.alerted=true;
+    playTripBeep();
+  }
+}
+
+/* 🔊 PLAY BEEP */
+function playTripBeep(){
+  const beep=document.getElementById("tripBeep");
+  beep.currentTime=0;
+  beep.play().catch(()=>{});
+}
+
+/* SYSTEM BAR */
+function updateSystemBar(){
+  const next=driverSchedule.find(s=>!s.arrived);
+  if(!next){
+    systemBar.classList.remove("late");
+    statusText.innerText="TRIP COMPLETE";
+    return;
+  }
+  const [h,m]=next.time.split(":").map(Number);
+  const sched=new Date();sched.setHours(h,m,0,0);
+  const diff=Math.round((new Date()-sched)/60000);
+  if(diff>1){
+    systemBar.classList.add("late");
+    statusText.innerText=`LATE ${diff} MIN`;
+  }else{
+    systemBar.classList.remove("late");
+    statusText.innerText="SYSTEMS OK";
+  }
+}
+
+/* PASSENGERS */
+function board(){passengers++; paxCount.innerText=passengers;}
+function alight(){if(passengers>0)passengers--; paxCount.innerText=passengers;}
+
+/* MESSAGES */
+function sendMsg(text){
+  const t=new Date().toLocaleTimeString();
+  const d=document.createElement("div");
+  d.innerText=`[${t}] ${text}`;
+  msgLog.prepend(d);
+}
+
+/* CLOCK + CHECKS */
+setInterval(()=>{
+  clock.innerText=new Date().toLocaleTimeString([],{
+    hour:'2-digit',minute:'2-digit'
   });
-  dispatchText.value="";
-  renderMessages();
-}
-
-/* ACK */
-function acknowledge(i){
-  messages[i].status="Acknowledged";
-  renderMessages();
-}
-
-/* RENDER */
-function renderMessages(){
-  /* DRIVER INBOX */
-  if(driverInbox){
-    driverInbox.innerHTML="";
-    messages.filter(m=>m.to===currentUser?.name)
-      .forEach(m=>{
-        driverInbox.innerHTML+=
-          `<div>[${m.time}] ${m.text}</div>`;
-      });
-  }
-
-  /* DISPATCH TABLE */
-  if(dispatchMsgs){
-    dispatchMsgs.innerHTML="<tr><th>Driver</th><th>Message</th><th>Status</th></tr>";
-    messages.filter(m=>m.to==="dispatch").forEach((m,i)=>{
-      const r=dispatchMsgs.insertRow();
-      r.className=m.status==="Pending"?"pending":"ack";
-      r.insertCell().innerText=m.from;
-      r.insertCell().innerText=`${m.text} (${m.time})`;
-      r.insertCell().innerHTML=
-        m.status==="Pending"
-        ? `<button onclick="acknowledge(${i})">ACK</button>`
-        : "Acknowledged";
-    });
-  }
-
-  /* SUPERVISOR */
-  if(supervisorInbox){
-    supervisorInbox.innerHTML="";
-    messages.forEach(m=>{
-      supervisorInbox.innerHTML+=
-        `<div>[${m.time}] ${m.from} → ${m.to}: ${m.text} (${m.status})</div>`;
-    });
-  }
-}
+  updateSystemBar();
+  checkDepartureBeep();
+},1000);
 </script>
 
 </body>
 </html>
-
