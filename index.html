@@ -7,54 +7,154 @@
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial;background:#9fd3ff;color:white}
-button,input,select,textarea{padding:8px;font-weight:bold}
-button{cursor:pointer}
-.page{display:none}
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#9fd3ff;
+  color:white;
+}
 
-/* LOGIN */
-#loginPage{height:100vh;display:flex;justify-content:center;align-items:center}
-.loginBox{width:360px;padding:30px;background:#0b2e63;border-radius:10px}
+/* ===== LOGIN ===== */
+#loginPage{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.loginBox{
+  width:360px;
+  padding:30px;
+  background:#0b2e63;
+  border-radius:10px;
+}
+.loginBox input{
+  width:100%;
+  padding:14px;
+  margin-bottom:12px;
+}
+.loginBox button{
+  width:100%;
+  padding:14px;
+  background:#1e88e5;
+  border:none;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
 
-/* TOP */
-.topBar{background:#0b2e63;padding:12px;display:flex;justify-content:space-between}
+/* ===== TOP BAR ===== */
+.topBar{
+  background:#0b2e63;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 
-/* LAYOUT */
-.main{display:flex;height:calc(100vh - 110px)}
-.sideBar{width:200px;background:#0b2e63;padding:10px}
-.sideBtn{width:100%;margin-bottom:10px;background:#123d7a;border:2px solid #5fb0ff;color:white}
-.content{flex:1;padding:15px;background:#0a2a5c}
-.panel{background:#103b7a;border:2px solid #5fb0ff;padding:10px;margin-bottom:15px}
+/* ===== LAYOUT ===== */
+.main{
+  display:flex;
+  height:calc(100vh - 110px);
+}
+.sideBar{
+  width:200px;
+  background:#0b2e63;
+  padding:10px;
+}
+.sideBtn{
+  width:100%;
+  margin-bottom:10px;
+  padding:12px;
+  background:#123d7a;
+  border:2px solid #5fb0ff;
+  color:white;
+  font-weight:bold;
+}
+.content{
+  flex:1;
+  padding:15px;
+  background:#0a2a5c;
+}
+.panel{
+  background:#103b7a;
+  border:2px solid #5fb0ff;
+  padding:10px;
+  margin-bottom:15px;
+}
 
-/* TABLE */
-table{width:100%;border-collapse:collapse}
-th,td{border:1px solid #5fb0ff;padding:6px;text-align:center}
+/* ===== TABLE ===== */
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid #5fb0ff;
+  padding:6px;
+  text-align:center;
+}
 th{background:#123d7a}
-.arriveBtn{background:#1d4ed8;border:1px solid #5fb0ff;color:white}
+.arriveBtn{
+  background:#1d4ed8;
+  border:1px solid #5fb0ff;
+  color:white;
+  cursor:pointer;
+}
 
-/* SYSTEM BAR */
-.systemBar{height:40px;background:#0f7a3c;display:flex;justify-content:space-between;align-items:center;padding:0 15px;font-weight:bold}
+/* ===== SYSTEM BAR ===== */
+.systemBar{
+  height:40px;
+  background:#0f7a3c;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 15px;
+  font-weight:bold;
+}
 .systemBar.late{background:#b91c1c}
+
+/* ===== DISPATCH VISIBILITY FIX ===== */
+#dispatcherPage input,
+#dispatcherPage select,
+#dispatcherPage textarea{
+  background:#ffffff;
+  color:#000000;
+  border:2px solid #5fb0ff;
+  padding:8px;
+}
+#dispatcherPage button{
+  background:#1e88e5;
+  color:white;
+}
+#dispatcherPage pre{
+  background:#061b3a;
+  color:white;
+  padding:10px;
+  overflow:auto;
+}
+
+/* ===== PAGES ===== */
+.page{display:none}
 </style>
 </head>
 
 <body>
 
+<!-- 🔔 DEPARTURE BEEP -->
 <audio id="tripBeep">
   <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=">
 </audio>
 
-<!-- LOGIN -->
+<!-- ================= LOGIN ================= -->
 <div id="loginPage">
   <div class="loginBox">
     <h2>PRTA Login</h2>
-    <input id="username" placeholder="Username"><br><br>
-    <input id="password" type="password" placeholder="Password"><br><br>
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
     <button onclick="login()">LOGIN</button>
   </div>
 </div>
 
-<!-- DRIVER -->
+<!-- ================= DRIVER ================= -->
 <div id="driverPage" class="page">
   <div class="topBar">
     <strong>DRIVER MDT</strong>
@@ -83,7 +183,7 @@ th{background:#123d7a}
   </div>
 </div>
 
-<!-- DISPATCHER -->
+<!-- ================= DISPATCHER ================= -->
 <div id="dispatcherPage" class="page">
   <div class="topBar">
     <strong>DISPATCHER</strong>
@@ -91,29 +191,37 @@ th{background:#123d7a}
   </div>
 
   <div class="content">
+
     <div class="panel">
       <h3>Create Schedule</h3>
+
+      <label>Driver</label><br>
       <select id="schDriver">
         <option value="">Select Driver</option>
         <option value="3675">3675</option>
         <option value="3804">3804</option>
       </select><br><br>
 
-      <input id="schStop" placeholder="Stop name"><br><br>
-      <input id="schTime" placeholder="HH:MM"><br><br>
+      <label>Stop Name</label><br>
+      <input id="schStop"><br><br>
+
+      <label>Time (HH:MM)</label><br>
+      <input id="schTime"><br><br>
+
       <button onclick="addStop()">Add Stop</button>
       <button onclick="assignSchedule()">Assign Schedule</button>
     </div>
 
     <div class="panel">
       <h3>Current Schedules</h3>
-      <pre id="scheduleDump"></pre>
+      <pre id="scheduleDump">No schedules yet</pre>
     </div>
+
   </div>
 </div>
 
 <script>
-/* USERS */
+/* ===== USERS ===== */
 const users={
   "3675":{password:"SR",role:"driver"},
   "3804":{password:"ER",role:"driver"},
@@ -122,15 +230,18 @@ const users={
 
 let currentUser=null;
 
-/* SHARED SCHEDULE STORE */
-const schedules={};  // driver -> array of stops
+/* ===== SHARED SCHEDULE STORE ===== */
+const schedules={};
 let tempStops=[];
 
-/* LOGIN */
+/* ===== LOGIN ===== */
 function login(){
   const u=username.value.trim();
   const p=password.value.trim();
-  if(!users[u]||users[u].password!==p){alert("Invalid login");return;}
+  if(!users[u]||users[u].password!==p){
+    alert("Invalid login");
+    return;
+  }
   currentUser={name:u,role:users[u].role};
   loginPage.style.display="none";
   if(currentUser.role==="driver") driverPage.style.display="block";
@@ -138,13 +249,20 @@ function login(){
   renderDriver();
   renderDispatch();
 }
+
 function logout(){location.reload();}
 
-/* DISPATCH */
+/* ===== DISPATCH ===== */
 function addStop(){
   if(!schStop.value||!schTime.value)return;
-  tempStops.push({stop:schStop.value,time:schTime.value,arrived:false,alerted:false});
-  schStop.value=""; schTime.value="";
+  tempStops.push({
+    stop:schStop.value,
+    time:schTime.value,
+    arrived:false,
+    alerted:false
+  });
+  schStop.value="";
+  schTime.value="";
 }
 
 function assignSchedule(){
@@ -158,7 +276,7 @@ function renderDispatch(){
   scheduleDump.textContent=JSON.stringify(schedules,null,2);
 }
 
-/* DRIVER */
+/* ===== DRIVER ===== */
 function renderDriver(){
   if(currentUser?.role!=="driver")return;
   const list=schedules[currentUser.name]||[];
@@ -176,7 +294,7 @@ function renderDriver(){
   });
 }
 
-/* ARRIVE */
+/* ===== ARRIVE ===== */
 function arrive(i){
   const list=schedules[currentUser.name];
   const s=list[i];
@@ -189,7 +307,7 @@ function arrive(i){
   renderDriver();
 }
 
-/* BEEP */
+/* ===== DEPARTURE BEEP ===== */
 function checkDepartureBeep(){
   if(currentUser?.role!=="driver")return;
   const next=(schedules[currentUser.name]||[]).find(s=>!s.arrived&&!s.alerted);
@@ -202,15 +320,16 @@ function checkDepartureBeep(){
   }
 }
 
-/* CLOCK */
+/* ===== CLOCK ===== */
 setInterval(()=>{
-  clock.innerText=new Date().toLocaleTimeString([],{
-    hour:'2-digit',minute:'2-digit'
-  });
+  if(clock){
+    clock.innerText=new Date().toLocaleTimeString([],{
+      hour:'2-digit',minute:'2-digit'
+    });
+  }
   checkDepartureBeep();
 },1000);
 </script>
 
 </body>
 </html>
-
