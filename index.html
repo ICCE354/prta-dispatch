@@ -14,7 +14,7 @@ body{
   color:white;
 }
 
-/* ===== LOGIN ===== */
+/* LOGIN */
 #loginPage{
   height:100vh;
   display:flex;
@@ -42,7 +42,7 @@ body{
   cursor:pointer;
 }
 
-/* ===== TOP BAR ===== */
+/* TOP BAR */
 .topBar{
   background:#0b2e63;
   padding:12px;
@@ -51,7 +51,7 @@ body{
   align-items:center;
 }
 
-/* ===== LAYOUT ===== */
+/* LAYOUT */
 .main{
   display:flex;
   height:calc(100vh - 110px);
@@ -82,7 +82,7 @@ body{
   margin-bottom:15px;
 }
 
-/* ===== TABLE ===== */
+/* TABLE */
 table{
   width:100%;
   border-collapse:collapse;
@@ -100,7 +100,7 @@ th{background:#123d7a}
   cursor:pointer;
 }
 
-/* ===== SYSTEM BAR ===== */
+/* SYSTEM BAR */
 .systemBar{
   height:40px;
   background:#0f7a3c;
@@ -111,8 +111,9 @@ th{background:#123d7a}
   font-weight:bold;
 }
 .systemBar.late{background:#b91c1c}
+.systemBar.early{background:#1e3a8a}
 
-/* ===== DISPATCH VISIBILITY FIX ===== */
+/* DISPATCH VISIBILITY */
 #dispatcherPage input,
 #dispatcherPage select,
 #dispatcherPage textarea{
@@ -121,18 +122,8 @@ th{background:#123d7a}
   border:2px solid #5fb0ff;
   padding:8px;
 }
-#dispatcherPage button{
-  background:#1e88e5;
-  color:white;
-}
-#dispatcherPage pre{
-  background:#061b3a;
-  color:white;
-  padding:10px;
-  overflow:auto;
-}
 
-/* ===== PAGES ===== */
+/* PAGES */
 .page{display:none}
 </style>
 </head>
@@ -144,7 +135,7 @@ th{background:#123d7a}
   <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=">
 </audio>
 
-<!-- ================= LOGIN ================= -->
+<!-- LOGIN -->
 <div id="loginPage">
   <div class="loginBox">
     <h2>PRTA Login</h2>
@@ -154,7 +145,7 @@ th{background:#123d7a}
   </div>
 </div>
 
-<!-- ================= DRIVER ================= -->
+<!-- DRIVER -->
 <div id="driverPage" class="page">
   <div class="topBar">
     <strong>DRIVER MDT</strong>
@@ -183,45 +174,19 @@ th{background:#123d7a}
   </div>
 </div>
 
-<!-- ================= DISPATCHER ================= -->
+<!-- DISPATCHER -->
 <div id="dispatcherPage" class="page">
   <div class="topBar">
     <strong>DISPATCHER</strong>
     <button onclick="logout()">LOG OUT</button>
   </div>
-
   <div class="content">
-
-    <div class="panel">
-      <h3>Create Schedule</h3>
-
-      <label>Driver</label><br>
-      <select id="schDriver">
-        <option value="">Select Driver</option>
-        <option value="3675">3675</option>
-        <option value="3804">3804</option>
-      </select><br><br>
-
-      <label>Stop Name</label><br>
-      <input id="schStop"><br><br>
-
-      <label>Time (HH:MM)</label><br>
-      <input id="schTime"><br><br>
-
-      <button onclick="addStop()">Add Stop</button>
-      <button onclick="assignSchedule()">Assign Schedule</button>
-    </div>
-
-    <div class="panel">
-      <h3>Current Schedules</h3>
-      <pre id="scheduleDump">No schedules yet</pre>
-    </div>
-
+    <p>Dispatcher logged in.</p>
   </div>
 </div>
 
 <script>
-/* ===== USERS ===== */
+/* USERS */
 const users={
   "3675":{password:"SR",role:"driver"},
   "3804":{password:"ER",role:"driver"},
@@ -230,53 +195,35 @@ const users={
 
 let currentUser=null;
 
-/* ===== SHARED SCHEDULE STORE ===== */
-const schedules={};
-let tempStops=[];
+/* SHARED SCHEDULE STORE */
+const schedules={
+  "3675":[
+    {stop:"Main St",time:"08:30",arrived:false,alerted:false},
+    {stop:"Broadway",time:"08:42",arrived:false,alerted:false},
+    {stop:"Depot",time:"08:55",arrived:false,alerted:false}
+  ]
+};
 
-/* ===== LOGIN ===== */
+let lastAdherence = null;
+
+/* LOGIN */
 function login(){
   const u=username.value.trim();
   const p=password.value.trim();
   if(!users[u]||users[u].password!==p){
-    alert("Invalid login");
-    return;
+    alert("Invalid login");return;
   }
   currentUser={name:u,role:users[u].role};
   loginPage.style.display="none";
   if(currentUser.role==="driver") driverPage.style.display="block";
   if(currentUser.role==="dispatcher") dispatcherPage.style.display="block";
   renderDriver();
-  renderDispatch();
 }
 
+/* LOGOUT */
 function logout(){location.reload();}
 
-/* ===== DISPATCH ===== */
-function addStop(){
-  if(!schStop.value||!schTime.value)return;
-  tempStops.push({
-    stop:schStop.value,
-    time:schTime.value,
-    arrived:false,
-    alerted:false
-  });
-  schStop.value="";
-  schTime.value="";
-}
-
-function assignSchedule(){
-  if(!schDriver.value||tempStops.length===0)return;
-  schedules[schDriver.value]=JSON.parse(JSON.stringify(tempStops));
-  tempStops=[];
-  renderDispatch();
-}
-
-function renderDispatch(){
-  scheduleDump.textContent=JSON.stringify(schedules,null,2);
-}
-
-/* ===== DRIVER ===== */
+/* DRIVER */
 function renderDriver(){
   if(currentUser?.role!=="driver")return;
   const list=schedules[currentUser.name]||[];
@@ -294,40 +241,47 @@ function renderDriver(){
   });
 }
 
-/* ===== ARRIVE ===== */
+/* ARRIVE */
 function arrive(i){
   const list=schedules[currentUser.name];
   const s=list[i];
   const [h,m]=s.time.split(":").map(Number);
   const sched=new Date();sched.setHours(h,m,0,0);
   const diff=Math.round((new Date()-sched)/60000);
+
   s.arrived=true;
-  s.status=diff>1?`LATE +${diff} MIN`:diff<-1?`EARLY ${-diff} MIN`:"ON TIME";
-  if(list.every(x=>x.arrived)) delete schedules[currentUser.name];
+  s.status=diff>=2?`LATE +${diff} MIN`:diff<=-2?`EARLY ${Math.abs(diff)} MIN`:"ON TIME";
+  lastAdherence = diff;
+
   renderDriver();
+  updateSystemBar(true);
 }
 
-/* ===== DEPARTURE BEEP ===== */
-function checkDepartureBeep(){
-  if(currentUser?.role!=="driver")return;
-  const next=(schedules[currentUser.name]||[]).find(s=>!s.arrived&&!s.alerted);
-  if(!next)return;
-  const [h,m]=next.time.split(":").map(Number);
-  const sched=new Date();sched.setHours(h,m,0,0);
-  if(new Date()>=sched){
-    next.alerted=true;
-    tripBeep.play().catch(()=>{});
+/* SYSTEM BAR */
+function updateSystemBar(fromArrival=false){
+  systemBar.classList.remove("late","early");
+
+  if(fromArrival && lastAdherence!==null){
+    if(lastAdherence>=2){
+      systemBar.classList.add("late");
+      statusText.innerText=`LATE ${lastAdherence} MIN`;
+    }else if(lastAdherence<=-2){
+      systemBar.classList.add("early");
+      statusText.innerText=`EARLY ${Math.abs(lastAdherence)} MIN`;
+    }else{
+      statusText.innerText="SYSTEMS OK";
+    }
+    return;
   }
+
+  statusText.innerText="SYSTEMS OK";
 }
 
-/* ===== CLOCK ===== */
+/* CLOCK */
 setInterval(()=>{
-  if(clock){
-    clock.innerText=new Date().toLocaleTimeString([],{
-      hour:'2-digit',minute:'2-digit'
-    });
-  }
-  checkDepartureBeep();
+  clock.innerText=new Date().toLocaleTimeString([],{
+    hour:'2-digit',minute:'2-digit'
+  });
 },1000);
 </script>
 
