@@ -6,16 +6,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-/* ===== COLORS ===== */
+/* ===== COLOR MATCH (FROM PHOTO) ===== */
 :root{
-  --bg:#020617;
-  --panel:#081a3a;
-  --baby:#7dd3fc;
-  --border:#38bdf8;
+  --bg:#8ec5ff;            /* baby blue background */
+  --panel:#0b2c6d;         /* dark blue panels */
+  --border:#7dd3fc;        /* light blue border */
+  --btn:#123c8a;           /* button blue */
   --white:#f8fafc;
-  --green:#16a34a;
-  --red:#dc2626;
-  --gray:#9ca3af;
+  --red:#b91c1c;
+  --green:#15803d;
 }
 
 body{
@@ -25,64 +24,58 @@ body{
   color:var(--white);
 }
 
-/* ===== TOP BUTTON BAR ===== */
+/* ===== TOP BAR ===== */
 .topbar{
   display:grid;
   grid-template-columns:repeat(5,1fr);
-  gap:12px;
+  gap:10px;
   padding:10px;
-  background:linear-gradient(#020617,#020617);
 }
 .topbtn{
+  background:var(--btn);
   border:2px solid var(--border);
   border-radius:6px;
   padding:10px;
   text-align:center;
   font-weight:bold;
-  background:#020617;
-  color:var(--baby);
 }
 
 /* ===== MAIN LAYOUT ===== */
 .main{
   display:grid;
-  grid-template-columns:220px 1fr 300px;
-  height:calc(100vh - 120px);
+  grid-template-columns:220px 1fr;
+  height:calc(100vh - 110px);
 }
 
-/* ===== LEFT MENU ===== */
+/* ===== LEFT BUTTON STACK ===== */
 .left{
   padding:10px;
   display:grid;
-  gap:12px;
+  gap:10px;
 }
 .leftbtn{
+  background:var(--btn);
   border:2px solid var(--border);
-  border-radius:10px;
-  padding:22px 10px;
+  border-radius:8px;
+  padding:18px;
   text-align:center;
-  background:var(--panel);
   font-weight:bold;
-  color:var(--baby);
 }
 
-/* ===== CENTER (SCHEDULE AREA) ===== */
+/* ===== CENTER SCHEDULE ===== */
 .center{
-  padding:12px;
+  padding:10px;
 }
-.scheduleBox{
+.schedule{
   height:100%;
-  border:2px solid var(--border);
-  border-radius:14px;
   background:var(--panel);
-  padding:12px;
+  border:2px solid var(--border);
+  border-radius:12px;
+  padding:10px;
 }
-.scheduleTitle{
+.schedule h2{
+  margin:0 0 10px 0;
   text-align:center;
-  font-size:20px;
-  font-weight:bold;
-  margin-bottom:10px;
-  color:var(--baby);
 }
 table{
   width:100%;
@@ -90,45 +83,32 @@ table{
 }
 th,td{
   border:1px solid var(--border);
-  padding:8px;
+  padding:6px;
   text-align:center;
 }
 th{
-  background:#0b255f;
-  color:var(--baby);
+  background:#123c8a;
 }
 
-/* ===== RIGHT PLACEHOLDER (MATCH DEVICE) ===== */
-.right{
-  background:#6b7280;
-  padding:10px;
-  color:#000;
-  font-weight:bold;
-}
-.rightTitle{
-  text-align:center;
-  margin-top:10px;
-}
-
-/* ===== FOOTER STATUS ===== */
+/* ===== FOOTER STATUS BAR ===== */
 .footer{
+  height:40px;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:10px 14px;
-  background:var(--green);
-  color:#fff;
+  padding:0 12px;
   font-weight:bold;
+  background:var(--green);
 }
-.late{
-  background:#b91c1c !important;
+.footer.late{
+  background:var(--red);
 }
 </style>
 </head>
 
 <body>
 
-<!-- ===== TOP BAR ===== -->
+<!-- ===== TOP BUTTONS ===== -->
 <div class="topbar">
   <div class="topbtn">RTT</div>
   <div class="topbtn">MSG</div>
@@ -140,7 +120,7 @@ th{
 <!-- ===== MAIN ===== -->
 <div class="main">
 
-  <!-- LEFT MENU -->
+  <!-- LEFT -->
   <div class="left">
     <div class="leftbtn">HEADSIGN</div>
     <div class="leftbtn">CARD INFO</div>
@@ -150,11 +130,11 @@ th{
     <div class="leftbtn">LOG OUT</div>
   </div>
 
-  <!-- CENTER SCHEDULE -->
+  <!-- CENTER -->
   <div class="center">
-    <div class="scheduleBox">
-      <div class="scheduleTitle">SCHEDULE</div>
-      <table id="schedTable">
+    <div class="schedule">
+      <h2>SCHEDULE</h2>
+      <table id="sched">
         <tr>
           <th>STOP</th>
           <th>TIME</th>
@@ -174,50 +154,44 @@ th{
     </div>
   </div>
 
-  <!-- RIGHT GRAY PANEL -->
-  <div class="right">
-    <div class="rightTitle">SCHEDULE</div>
-  </div>
-
 </div>
 
 <!-- ===== FOOTER ===== -->
-<div id="statusBar" class="footer">
-  <div id="sysText">SYSTEMS OK</div>
+<div id="footer" class="footer">
+  <div id="statusText">SYSTEMS OK</div>
   <div id="clock"></div>
 </div>
 
 <script>
 /* ===== CLOCK ===== */
-function tick(){
-  const now=new Date();
-  clock.innerText=now.toLocaleTimeString([],{
-    hour:"2-digit",
-    minute:"2-digit"
+function updateClock(){
+  clock.innerText = new Date().toLocaleTimeString([],{
+    hour:'2-digit',minute:'2-digit'
   });
 }
-setInterval(tick,1000);tick();
+setInterval(updateClock,1000);updateClock();
 
-/* ===== DEMO LATENESS (NEXT STOP) ===== */
-function checkLate(){
-  const nextTime="08:30";
-  const [h,m]=nextTime.split(":").map(Number);
-  const sched=new Date();
+/* ===== REAL LATENESS (NEXT STOP) ===== */
+function latenessCheck(){
+  const nextStopTime = "08:30";
+  const [h,m] = nextStopTime.split(":").map(Number);
+
+  const sched = new Date();
   sched.setHours(h,m,0,0);
 
-  const now=new Date();
-  const diff=Math.round((now-sched)/60000);
+  const now = new Date();
+  const diff = Math.round((now - sched) / 60000);
 
-  if(diff>1){
-    statusBar.classList.add("late");
-    sysText.innerText=`LATE ${diff} MIN`;
-  }else{
-    statusBar.classList.remove("late");
-    sysText.innerText="SYSTEMS OK";
+  if(diff > 1){
+    footer.classList.add("late");
+    statusText.innerText = `LATE ${diff} MIN`;
+  } else {
+    footer.classList.remove("late");
+    statusText.innerText = "SYSTEMS OK";
   }
 }
-setInterval(checkLate,10000);
-checkLate();
+setInterval(latenessCheck,5000);
+latenessCheck();
 </script>
 
 </body>
