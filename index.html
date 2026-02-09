@@ -80,6 +80,7 @@ body{
   background:#103b7a;
   border:2px solid #5fb0ff;
   padding:10px;
+  margin-bottom:15px;
 }
 
 /* TABLE */
@@ -113,6 +114,17 @@ th{background:#123d7a}
   font-weight:bold;
 }
 .systemBar.late{background:#b91c1c}
+
+/* MESSAGE LOG */
+.msgLog{
+  font-size:14px;
+  max-height:100px;
+  overflow-y:auto;
+}
+.msgLog div{
+  border-bottom:1px solid #5fb0ff;
+  padding:4px 0;
+}
 
 /* PAGES */
 .page{display:none}
@@ -148,10 +160,35 @@ th{background:#123d7a}
     </div>
 
     <div class="content">
+
+      <!-- SCHEDULE -->
       <div class="panel">
         <h3>SCHEDULE</h3>
         <table id="driverTable"></table>
       </div>
+
+      <!-- PASSENGER COUNTER -->
+      <div class="panel">
+        <h3>PASSENGER COUNT</h3>
+        <p>Total Onboard: <strong id="paxCount">0</strong></p>
+        <button class="arriveBtn" onclick="board()">+ Board</button>
+        <button class="arriveBtn" onclick="alight()">− Alight</button>
+      </div>
+
+      <!-- CANNED MESSAGES -->
+      <div class="panel">
+        <h3>DISPATCH MESSAGES</h3>
+        <button class="arriveBtn" onclick="sendMsg('Running Late')">Running Late</button>
+        <button class="arriveBtn" onclick="sendMsg('Traffic Delay')">Traffic Delay</button>
+        <button class="arriveBtn" onclick="sendMsg('Mechanical Issue')">Mechanical Issue</button>
+        <button class="arriveBtn" onclick="sendMsg('Operator Assistance Requested')">Operator Assistance Requested</button>
+        <button class="arriveBtn" onclick="sendMsg('Customer Declined Shoulder Strap')">
+          Customer Declined Shoulder Strap
+        </button>
+
+        <div class="msgLog" id="msgLog"></div>
+      </div>
+
     </div>
   </div>
 
@@ -194,12 +231,15 @@ const users={
 
 let currentUser=null;
 
-/* SAMPLE DRIVER SCHEDULE */
+/* SAMPLE SCHEDULE */
 let driverSchedule=[
   {stop:"Main St",time:"08:30",arrived:false},
   {stop:"Broadway",time:"08:42",arrived:false},
   {stop:"Depot",time:"08:55",arrived:false}
 ];
+
+/* PASSENGERS */
+let passengers=0;
 
 /* LOGIN */
 function login(){
@@ -247,6 +287,8 @@ function arrive(i){
   s.status=diff>1?`LATE +${diff} MIN`:diff<-1?`EARLY ${-diff} MIN`:"ON TIME";
   if(driverSchedule.every(x=>x.arrived)){
     driverSchedule=[];
+    passengers=0;
+    paxCount.innerText=passengers;
   }
   renderDriver();
   updateSystemBar();
@@ -272,6 +314,24 @@ function updateSystemBar(){
   }
 }
 
+/* PASSENGERS */
+function board(){
+  passengers++;
+  paxCount.innerText=passengers;
+}
+function alight(){
+  if(passengers>0)passengers--;
+  paxCount.innerText=passengers;
+}
+
+/* MESSAGES */
+function sendMsg(text){
+  const t=new Date().toLocaleTimeString();
+  const d=document.createElement("div");
+  d.innerText=`[${t}] ${text}`;
+  msgLog.prepend(d);
+}
+
 /* CLOCK */
 setInterval(()=>{
   clock.innerText=new Date().toLocaleTimeString([],{
@@ -283,5 +343,4 @@ setInterval(()=>{
 
 </body>
 </html>
-
 
