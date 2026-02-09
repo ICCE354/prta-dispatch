@@ -5,17 +5,18 @@
 <title>PRTA Driver MDT</title>
 
 <style>
-/* ================= ROOT ================= */
+/* ================= COLORS ================= */
 :root{
-  --bg-main:#040b1d;
-  --bg-panel:#070f24;
-  --bg-button:#0b1a3d;
-  --border:#1f6fff;
-  --text:#e6ebff;
-  --text-dim:#aab3ff;
-  --ok:#0a5c3a;
-  --warn:#9a6a00;
-  --late:#7f1d1d;
+  --bg-main:#000000;
+  --bg-panel:#0b2a55;
+  --bg-button:#1e5aa8;
+  --bg-button-alt:#153b73;
+  --border:#6fb6ff;
+  --text:#ffffff;
+  --text-dim:#cfe4ff;
+  --ok:#0a7a3a;
+  --warn:#c89b00;
+  --late:#b91c1c;
 }
 
 /* ================= BASE ================= */
@@ -29,39 +30,39 @@ html,body{
   color:var(--text);
 }
 
-/* ================= MDT FRAME ================= */
 #mdt{
   width:100%;
   height:100%;
-  background:var(--bg-main);
   display:flex;
   flex-direction:column;
+  background:var(--bg-main);
 }
 
 /* ================= TOP BAR ================= */
 #topBar{
-  height:64px;
+  height:56px;
   display:flex;
-  justify-content:space-around;
-  align-items:center;
-  background:var(--bg-panel);
+  gap:6px;
+  padding:6px;
+  background:#000;
   border-bottom:2px solid var(--border);
 }
 
 .topBtn{
-  width:120px;
-  height:42px;
-  background:var(--bg-button);
+  flex:1;
+  background:linear-gradient(#2b6ecb,#1e4f99);
   border:2px solid var(--border);
-  border-radius:8px;
-  font-size:12px;
+  border-radius:0;
+  color:white;
   font-weight:bold;
+  font-size:14px;
   display:flex;
   align-items:center;
   justify-content:center;
+  cursor:pointer;
 }
 
-/* ================= MAIN GRID ================= */
+/* ================= MAIN ================= */
 #main{
   flex:1;
   display:grid;
@@ -70,79 +71,75 @@ html,body{
 
 /* ================= LEFT PANEL ================= */
 #left{
-  background:#050e22;
-  padding:12px;
+  background:#020617;
+  padding:10px;
   display:grid;
   grid-template-rows:repeat(6,1fr);
-  gap:10px;
+  gap:8px;
 }
 
 .leftBtn{
-  background:var(--bg-button);
+  background:var(--bg-button-alt);
   border:2px solid var(--border);
-  border-radius:8px;
+  color:white;
+  font-weight:bold;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-weight:bold;
-  font-size:14px;
 }
 
-/* ================= CENTER PANEL ================= */
+/* ================= CENTER ================= */
 #center{
-  padding:14px;
+  padding:12px;
 }
 
 .audioBox{
-  background:#111a3a;
-  border:2px solid var(--border);
-  border-radius:10px;
-  padding:14px;
   height:100%;
+  background:#07112b;
+  border:2px solid var(--border);
+  padding:12px;
 }
 
 .audioBox h3{
-  margin-top:0;
+  margin:0 0 10px 0;
   text-align:center;
 }
 
 .audioRow{
   display:flex;
-  gap:10px;
-  margin-top:12px;
+  gap:8px;
+  margin-bottom:8px;
 }
 
 .audioBtn{
   flex:1;
-  padding:14px;
-  background:#13296a;
+  padding:12px;
+  background:var(--bg-button);
   border:2px solid var(--border);
-  border-radius:8px;
   text-align:center;
   font-weight:bold;
 }
 
-.yellow{background:#8a6d00}
-.green{background:#0a5c3a}
-.red{background:#7f1d1d}
+.yellow{background:#c89b00}
+.green{background:#0a7a3a}
+.red{background:#b91c1c}
 
 /* ================= RIGHT SCHEDULE ================= */
 #right{
-  background:#6b7280;
+  background:#9ca3af;
   padding:10px;
   color:black;
 }
 
 #right h3{
-  text-align:center;
   margin:4px 0 10px 0;
+  text-align:center;
 }
 
 .stop{
   background:#e5e7eb;
-  margin-bottom:8px;
   padding:8px;
-  border-radius:6px;
+  margin-bottom:6px;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -150,22 +147,34 @@ html,body{
 }
 
 .stop button{
-  background:#2563eb;
+  background:#1e5aa8;
   border:none;
   color:white;
   padding:6px 10px;
-  border-radius:6px;
+  cursor:pointer;
+}
+
+/* ================= PAGES ================= */
+#pages{
+  display:none;
+  padding:16px;
+  background:#020617;
+  color:white;
+  height:100%;
+}
+
+.page{
+  display:none;
 }
 
 /* ================= BOTTOM BAR ================= */
 #bottomBar{
-  height:42px;
+  height:40px;
   display:flex;
   justify-content:space-between;
   align-items:center;
   padding:0 14px;
   font-weight:bold;
-  font-size:16px;
 }
 
 .ok{background:var(--ok)}
@@ -175,16 +184,15 @@ html,body{
 </head>
 
 <body>
-
 <div id="mdt">
 
-  <!-- TOP BAR -->
+  <!-- TOP -->
   <div id="topBar">
-    <div class="topBtn">RTT</div>
-    <div class="topBtn">MSG</div>
-    <div class="topBtn">ANNC</div>
-    <div class="topBtn">MENU</div>
-    <div class="topBtn">HOME</div>
+    <div class="topBtn" onclick="openPage('rtt')">RTT</div>
+    <div class="topBtn" onclick="openPage('msg')">MSG</div>
+    <div class="topBtn" onclick="openPage('annc')">ANNC</div>
+    <div class="topBtn" onclick="openPage('menu')">MENU</div>
+    <div class="topBtn" onclick="goHome()">HOME</div>
   </div>
 
   <!-- MAIN -->
@@ -226,6 +234,26 @@ html,body{
 
   </div>
 
+  <!-- PAGES -->
+  <div id="pages">
+    <div id="page-rtt" class="page">
+      <h2>RTT</h2>
+      <p>Two-way radio screen</p>
+    </div>
+    <div id="page-msg" class="page">
+      <h2>Messages</h2>
+      <p>Driver ↔ Dispatch messages</p>
+    </div>
+    <div id="page-annc" class="page">
+      <h2>Announcements</h2>
+      <p>Announcement buttons</p>
+    </div>
+    <div id="page-menu" class="page">
+      <h2>Menu</h2>
+      <p>Additional options</p>
+    </div>
+  </div>
+
   <!-- BOTTOM -->
   <div id="bottomBar" class="ok">
     <span id="statusText">SYSTEMS OK</span>
@@ -235,37 +263,49 @@ html,body{
 </div>
 
 <script>
-/* ================= CLOCK ================= */
+/* ===== CLOCK ===== */
 setInterval(()=>{
-  clock.innerText = new Date().toLocaleTimeString([],{
+  clock.innerText=new Date().toLocaleTimeString([],{
     hour:'2-digit',minute:'2-digit'
   });
 },1000);
 
-/* ================= SAMPLE TRIP ================= */
-let trip = [];
-let active = false;
+/* ===== NAV ===== */
+function openPage(name){
+  document.getElementById("main").style.display="none";
+  pages.style.display="block";
+  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+  document.getElementById("page-"+name).style.display="block";
+}
+function goHome(){
+  pages.style.display="none";
+  main.style.display="grid";
+}
+
+/* ===== SAMPLE TRIP ===== */
+let trip=[];
+let active=false;
 
 function startShift(){
   if(active) return;
-  active = true;
-  trip = [
-    {stop:"Terminal", time:"15:30", arrived:false},
-    {stop:"Main St", time:"15:45", arrived:false},
-    {stop:"Depot", time:"16:00", arrived:false}
+  active=true;
+  trip=[
+    {stop:"Terminal",time:"15:30",arrived:false},
+    {stop:"Main St",time:"15:45",arrived:false},
+    {stop:"Depot",time:"16:00",arrived:false}
   ];
   renderSchedule();
 }
 
 function endShift(){
-  active = false;
-  trip = [];
+  active=false;
+  trip=[];
   renderSchedule();
-  statusText.innerText = "SYSTEMS OK";
-  bottomBar.className = "ok";
+  statusText.innerText="SYSTEMS OK";
+  bottomBar.className="ok";
 }
 
-/* ================= SCHEDULE ================= */
+/* ===== SCHEDULE ===== */
 function renderSchedule(){
   schedulePanel.innerHTML="";
   if(trip.length===0){
@@ -274,11 +314,11 @@ function renderSchedule(){
   }
   trip.forEach((p,i)=>{
     if(p.arrived) return;
-    const div=document.createElement("div");
-    div.className="stop";
-    div.innerHTML=`${p.stop} ${p.time}
+    const d=document.createElement("div");
+    d.className="stop";
+    d.innerHTML=`${p.stop} ${p.time}
       <button onclick="arrive(${i})">Arrived</button>`;
-    schedulePanel.appendChild(div);
+    schedulePanel.appendChild(d);
   });
 }
 
@@ -292,20 +332,18 @@ function arrive(i){
   }
 }
 
-/* ================= LATENESS ================= */
+/* ===== LATENESS ===== */
 setInterval(()=>{
   if(trip.length===0){
     statusText.innerText="SYSTEMS OK";
     bottomBar.className="ok";
     return;
   }
-  const next = trip.find(p=>!p.arrived);
+  const next=trip.find(p=>!p.arrived);
   if(!next) return;
-
   const [h,m]=next.time.split(":").map(Number);
   const sched=new Date(); sched.setHours(h,m,0,0);
   const diff=Math.round((new Date()-sched)/60000);
-
   if(diff<=0){
     statusText.innerText="ON TIME";
     bottomBar.className="ok";
