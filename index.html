@@ -3,273 +3,323 @@
 <head>
 <meta charset="UTF-8">
 <title>PRTA Driver MDT</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-/* ===== GLOBAL ===== */
-body{
+/* ================= ROOT ================= */
+:root{
+  --bg-main:#040b1d;
+  --bg-panel:#070f24;
+  --bg-button:#0b1a3d;
+  --border:#1f6fff;
+  --text:#e6ebff;
+  --text-dim:#aab3ff;
+  --ok:#0a5c3a;
+  --warn:#9a6a00;
+  --late:#7f1d1d;
+}
+
+/* ================= BASE ================= */
+html,body{
   margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#020617;
-  color:#e5e7eb;
-  user-select:none;
-}
-.page{display:none;padding:12px}
-button{
+  padding:0;
   width:100%;
-  padding:12px;
-  font-size:15px;
-  border-radius:8px;
-  border:1px solid #1f2937;
-  background:#1e40af;
-  color:white;
-  font-weight:bold;
-}
-button:active{transform:scale(0.97)}
-.hidden{display:none}
-
-/* ===== TOP BAR (MATCHED) ===== */
-#topBar{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr auto;
-  gap:6px;
-  align-items:center;
-  background:#0b1220;
-  border-bottom:2px solid #2563eb;
-  padding:8px 10px;
-  font-size:13px;
-}
-.topBox{
-  background:#020617;
-  border:1px solid #1f2937;
-  padding:6px;
-  text-align:center;
-  font-weight:bold;
+  height:100%;
+  background:black;
+  font-family:Arial, Helvetica, sans-serif;
+  color:var(--text);
 }
 
-/* ===== HOME GRID (TRAPEZE STYLE) ===== */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  margin-top:14px;
-}
-.tile{
-  height:92px;
-  background:#020617;
-  border:2px solid #1f2937;
-  border-radius:10px;
+/* ================= MDT FRAME ================= */
+#mdt{
+  width:100%;
+  height:100%;
+  background:var(--bg-main);
   display:flex;
   flex-direction:column;
-  justify-content:center;
-  align-items:center;
 }
-.tile span{font-size:26px}
-.tile small{margin-top:6px;font-size:12px}
 
-/* ===== TABLE ===== */
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
+/* ================= TOP BAR ================= */
+#topBar{
+  height:64px;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  background:var(--bg-panel);
+  border-bottom:2px solid var(--border);
 }
-th,td{
-  border:1px solid #1f2937;
-  padding:8px;
-  text-align:center;
+
+.topBtn{
+  width:120px;
+  height:42px;
+  background:var(--bg-button);
+  border:2px solid var(--border);
+  border-radius:8px;
+  font-size:12px;
+  font-weight:bold;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ================= MAIN GRID ================= */
+#main{
+  flex:1;
+  display:grid;
+  grid-template-columns:260px 1fr 320px;
+}
+
+/* ================= LEFT PANEL ================= */
+#left{
+  background:#050e22;
+  padding:12px;
+  display:grid;
+  grid-template-rows:repeat(6,1fr);
+  gap:10px;
+}
+
+.leftBtn{
+  background:var(--bg-button);
+  border:2px solid var(--border);
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
   font-size:14px;
 }
-th{background:#0b1220}
 
-/* ===== BOTTOM LATE BAR ===== */
-#lateBar{
-  position:fixed;
-  bottom:0;
-  left:0;
-  width:100%;
-  padding:12px;
-  font-size:18px;
-  font-weight:bold;
+/* ================= CENTER PANEL ================= */
+#center{
+  padding:14px;
+}
+
+.audioBox{
+  background:#111a3a;
+  border:2px solid var(--border);
+  border-radius:10px;
+  padding:14px;
+  height:100%;
+}
+
+.audioBox h3{
+  margin-top:0;
   text-align:center;
 }
-.onTime{background:#064e3b}
-.warn{background:#92400e}
-.late{background:#7f1d1d}
 
-/* ===== BACK BUTTON ===== */
-.backBtn{
-  margin-bottom:8px;
-  background:#020617;
+.audioRow{
+  display:flex;
+  gap:10px;
+  margin-top:12px;
 }
+
+.audioBtn{
+  flex:1;
+  padding:14px;
+  background:#13296a;
+  border:2px solid var(--border);
+  border-radius:8px;
+  text-align:center;
+  font-weight:bold;
+}
+
+.yellow{background:#8a6d00}
+.green{background:#0a5c3a}
+.red{background:#7f1d1d}
+
+/* ================= RIGHT SCHEDULE ================= */
+#right{
+  background:#6b7280;
+  padding:10px;
+  color:black;
+}
+
+#right h3{
+  text-align:center;
+  margin:4px 0 10px 0;
+}
+
+.stop{
+  background:#e5e7eb;
+  margin-bottom:8px;
+  padding:8px;
+  border-radius:6px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:bold;
+}
+
+.stop button{
+  background:#2563eb;
+  border:none;
+  color:white;
+  padding:6px 10px;
+  border-radius:6px;
+}
+
+/* ================= BOTTOM BAR ================= */
+#bottomBar{
+  height:42px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 14px;
+  font-weight:bold;
+  font-size:16px;
+}
+
+.ok{background:var(--ok)}
+.warn{background:var(--warn)}
+.late{background:var(--late)}
 </style>
 </head>
 
 <body>
 
-<!-- ===== TOP STATUS BAR ===== -->
-<div id="topBar">
-  <div class="topBox">BUS <span id="bus">4172</span></div>
-  <div class="topBox">ROUTE <span id="route">1</span></div>
-  <div class="topBox">RUN <span id="run">302</span></div>
-  <div class="topBox" id="clock">--:--</div>
-</div>
+<div id="mdt">
 
-<!-- ===== HOME ===== -->
-<div id="home" class="page" style="display:block">
-  <div class="grid">
+  <!-- TOP BAR -->
+  <div id="topBar">
+    <div class="topBtn">RTT</div>
+    <div class="topBtn">MSG</div>
+    <div class="topBtn">ANNC</div>
+    <div class="topBtn">MENU</div>
+    <div class="topBtn">HOME</div>
+  </div>
 
-    <div class="tile" onclick="show('rtt')">
-      <span>📻</span><small>RTT</small>
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- LEFT -->
+    <div id="left">
+      <div class="leftBtn">HEADSIGN</div>
+      <div class="leftBtn">CARD INFO</div>
+      <div class="leftBtn">SETUP</div>
+      <div class="leftBtn">MAINT</div>
+      <div class="leftBtn" onclick="startShift()">START SHIFT</div>
+      <div class="leftBtn" onclick="endShift()">LOG OUT</div>
     </div>
 
-    <div class="tile" onclick="show('schedule')">
-      <span>📋</span><small>Schedule</small>
+    <!-- CENTER -->
+    <div id="center">
+      <div class="audioBox">
+        <h3>AUDIO</h3>
+        <div class="audioRow">
+          <div class="audioBtn yellow">HALT ANNOUNCE</div>
+        </div>
+        <div class="audioRow">
+          <div class="audioBtn">EXT SPKR</div>
+        </div>
+        <div class="audioRow">
+          <div class="audioBtn green">ON</div>
+          <div class="audioBtn red">OFF</div>
+          <div class="audioBtn">LOOP</div>
+        </div>
+      </div>
     </div>
 
-    <div class="tile" onclick="show('annc')">
-      <span>📢</span><small>ANNC</small>
-    </div>
-
-    <div class="tile" onclick="show('count')">
-      <span>👥</span><small>Passengers</small>
-    </div>
-
-    <div class="tile">
-      <span>⚙️</span><small>Setup</small>
-    </div>
-
-    <div class="tile">
-      <span>🛠️</span><small>Maintenance</small>
-    </div>
-
-    <div class="tile" onclick="logout()">
-      <span>🚪</span><small>Log Out</small>
+    <!-- RIGHT -->
+    <div id="right">
+      <h3>SCHEDULE</h3>
+      <div id="schedulePanel"></div>
     </div>
 
   </div>
-</div>
 
-<!-- ===== RTT ===== -->
-<div id="rtt" class="page">
-  <button class="backBtn" onclick="goHome()">⬅ HOME</button>
-  <button>Running Late</button>
-  <button>Traffic Delay</button>
-  <button>Mechanical Issue</button>
-  <button>Customer Declined Shoulder Strap</button>
-  <button>Operator Assistance Requested</button>
-</div>
+  <!-- BOTTOM -->
+  <div id="bottomBar" class="ok">
+    <span id="statusText">SYSTEMS OK</span>
+    <span id="clock">--:--</span>
+  </div>
 
-<!-- ===== SCHEDULE ===== -->
-<div id="schedule" class="page">
-  <button class="backBtn" onclick="goHome()">⬅ HOME</button>
-  <table id="schedTable"></table>
 </div>
-
-<!-- ===== PASSENGERS ===== -->
-<div id="count" class="page">
-  <button class="backBtn" onclick="goHome()">⬅ HOME</button>
-  <button onclick="boarded++">Board +1</button>
-  <button onclick="alighted++">Alight +1</button>
-  <p>Boarded: <span id="b">0</span></p>
-  <p>Alighted: <span id="a">0</span></p>
-  <p>Onboard: <span id="o">0</span></p>
-</div>
-
-<!-- ===== ANNOUNCEMENTS ===== -->
-<div id="annc" class="page">
-  <button class="backBtn" onclick="goHome()">⬅ HOME</button>
-  <button>Please move to the rear of the bus</button>
-  <button>Night safety message</button>
-  <button>Do not talk to operator</button>
-  <button>Accessible seating reminder</button>
-</div>
-
-<!-- ===== BOTTOM BAR ===== -->
-<div id="lateBar" class="onTime">ON TIME</div>
 
 <script>
-/* ===== NAV ===== */
-function show(id){
-  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-  document.getElementById(id).style.display='block';
-}
-function goHome(){show('home')}
-function logout(){alert("Logged out")}
-
-/* ===== CLOCK ===== */
+/* ================= CLOCK ================= */
 setInterval(()=>{
-  const d=new Date();
-  clock.innerText=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  clock.innerText = new Date().toLocaleTimeString([],{
+    hour:'2-digit',minute:'2-digit'
+  });
 },1000);
 
-/* ===== PASSENGERS ===== */
-let boarded=0, alighted=0;
-setInterval(()=>{
-  b.innerText=boarded;
-  a.innerText=alighted;
-  o.innerText=Math.max(0,boarded-alighted);
-},500);
+/* ================= SAMPLE TRIP ================= */
+let trip = [];
+let active = false;
 
-/* ===== REAL SCHEDULE DATA ===== */
-let trip = [
-  {stop:"Terminal", time:"15:30", arrived:false},
-  {stop:"Main St", time:"15:45", arrived:false},
-  {stop:"Depot", time:"16:00", arrived:false}
-];
+function startShift(){
+  if(active) return;
+  active = true;
+  trip = [
+    {stop:"Terminal", time:"15:30", arrived:false},
+    {stop:"Main St", time:"15:45", arrived:false},
+    {stop:"Depot", time:"16:00", arrived:false}
+  ];
+  renderSchedule();
+}
 
-/* ===== RENDER SCHEDULE ===== */
+function endShift(){
+  active = false;
+  trip = [];
+  renderSchedule();
+  statusText.innerText = "SYSTEMS OK";
+  bottomBar.className = "ok";
+}
+
+/* ================= SCHEDULE ================= */
 function renderSchedule(){
-  schedTable.innerHTML="<tr><th>Stop</th><th>Time</th><th>Status</th></tr>";
+  schedulePanel.innerHTML="";
+  if(trip.length===0){
+    schedulePanel.innerHTML="<p style='text-align:center'>No Active Trip</p>";
+    return;
+  }
   trip.forEach((p,i)=>{
-    const r=schedTable.insertRow();
-    r.insertCell().innerText=p.stop;
-    r.insertCell().innerText=p.time;
-    r.insertCell().innerHTML=p.arrived
-      ? "Arrived"
-      : `<button onclick="arrive(${i})">Arrived</button>`;
+    if(p.arrived) return;
+    const div=document.createElement("div");
+    div.className="stop";
+    div.innerHTML=`${p.stop} ${p.time}
+      <button onclick="arrive(${i})">Arrived</button>`;
+    schedulePanel.appendChild(div);
   });
 }
-renderSchedule();
 
-/* ===== ARRIVE ===== */
 function arrive(i){
   trip[i].arrived=true;
   renderSchedule();
   if(trip.every(p=>p.arrived)){
     trip=[];
-    schedTable.innerHTML="<tr><td colspan='3'>No Active Trip</td></tr>";
-    lateBar.innerText="ON TIME";
-    lateBar.className="onTime";
+    statusText.innerText="SYSTEMS OK";
+    bottomBar.className="ok";
   }
 }
 
-/* ===== REAL LATENESS CALC ===== */
+/* ================= LATENESS ================= */
 setInterval(()=>{
-  const next = trip.find(p=>!p.arrived);
-  if(!next){
-    lateBar.innerText="ON TIME";
-    lateBar.className="onTime";
+  if(trip.length===0){
+    statusText.innerText="SYSTEMS OK";
+    bottomBar.className="ok";
     return;
   }
+  const next = trip.find(p=>!p.arrived);
+  if(!next) return;
+
   const [h,m]=next.time.split(":").map(Number);
   const sched=new Date(); sched.setHours(h,m,0,0);
   const diff=Math.round((new Date()-sched)/60000);
 
   if(diff<=0){
-    lateBar.className="onTime";
-    lateBar.innerText="ON TIME";
+    statusText.innerText="ON TIME";
+    bottomBar.className="ok";
   }else if(diff<=2){
-    lateBar.className="warn";
-    lateBar.innerText=`LATE ${diff} MIN`;
+    statusText.innerText=`LATE ${diff} MIN`;
+    bottomBar.className="warn";
   }else{
-    lateBar.className="late";
-    lateBar.innerText=`LATE ${diff} MIN`;
+    statusText.innerText=`LATE ${diff} MIN`;
+    bottomBar.className="late";
   }
 },30000);
 </script>
 
 </body>
 </html>
-
 
 
