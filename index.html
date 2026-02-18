@@ -1,289 +1,159 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>PRTA MDT</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial;background:#9fd3ff;color:white}
-
-/* LOGIN */
-#loginPage{height:100vh;display:flex;justify-content:center;align-items:center}
-.loginBox{width:360px;padding:30px;background:#0b2e63;border-radius:10px}
-.loginBox input{width:100%;padding:14px;margin-bottom:12px}
-.loginBox button{width:100%;padding:14px;background:#1e88e5;border:none;color:white;font-weight:bold}
-
-/* TOP BAR */
-.topBar{background:#0b2e63;padding:12px;display:flex;justify-content:space-between}
-
-/* LAYOUT */
-.main{display:flex;height:calc(100vh - 110px)}
-.sideBar{width:200px;background:#0b2e63;padding:10px}
-.sideBtn{width:100%;margin-bottom:10px;padding:12px;background:#123d7a;border:2px solid #5fb0ff;color:white;font-weight:bold}
-.content{flex:1;padding:15px;background:#0a2a5c}
-.panel{background:#103b7a;border:2px solid #5fb0ff;padding:10px;margin-bottom:15px}
-
-/* TABLE */
+body{font-family:Arial;margin:0;background:#9fd3ff}
+.page{display:none;padding:20px}
+button{padding:10px;margin:5px;background:#1e88e5;color:white;border:none}
+input{padding:8px;margin:5px}
 table{width:100%;border-collapse:collapse}
-th,td{border:1px solid #5fb0ff;padding:6px;text-align:center}
-th{background:#123d7a}
-.arriveBtn{background:#1d4ed8;border:1px solid #5fb0ff;color:white;cursor:pointer}
-
-/* SYSTEM BAR */
-.systemBar{height:40px;background:#0f7a3c;display:flex;justify-content:space-between;align-items:center;padding:0 15px;font-weight:bold}
-.systemBar.late{background:#b91c1c}
-.systemBar.early{background:#1e3a8a}
-
-/* DISPATCH VISIBILITY */
-#dispatcherPage input,#dispatcherPage select,#dispatcherPage textarea{
-  background:white;color:black;border:2px solid #5fb0ff;padding:8px
-}
-#dispatcherPage button{background:#1e88e5;color:white}
-#dispatcherPage pre{background:#061b3a;color:white;padding:10px}
-
-/* MESSAGES */
-.msgBox{background:#061b3a;border:1px solid #5fb0ff;max-height:160px;overflow-y:auto;padding:6px}
-.msg{border-bottom:1px solid #5fb0ff;padding:4px 0}
-
-.page{display:none}
+td,th{border:1px solid #000;padding:6px;text-align:center}
 </style>
 </head>
 
 <body>
 
-<audio id="tripBeep">
-  <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=">
-</audio>
-
 <!-- LOGIN -->
-<div id="loginPage">
-  <div class="loginBox">
-    <h2>PRTA Login</h2>
-    <input id="username" placeholder="Username">
-    <input id="password" type="password" placeholder="Password">
-    <button onclick="login()">LOGIN</button>
-  </div>
+<div id="login" class="page" style="display:block">
+<h2>Login</h2>
+<input id="user" placeholder="Username"><br>
+<input id="pass" placeholder="Password"><br>
+<button onclick="login()">Login</button>
 </div>
 
 <!-- DRIVER -->
-<div id="driverPage" class="page">
-  <div class="topBar">
-    <strong>DRIVER MDT</strong>
-    <button onclick="logout()">LOG OUT</button>
-  </div>
+<div id="driver" class="page">
+<h2>Driver MDT</h2>
+<button onclick="logout()">Logout</button>
 
-  <div class="main">
-    <div class="sideBar">
-      <button class="sideBtn">HEADSIGN</button>
-      <button class="sideBtn">CARD INFO</button>
-      <button class="sideBtn">SETUP</button>
-      <button class="sideBtn">MAINT</button>
-    </div>
+<h3>Schedule</h3>
+<table id="driverTable"></table>
 
-    <div class="content">
-      <div class="panel">
-        <h3>SCHEDULE</h3>
-        <table id="driverTable"></table>
-      </div>
+<h3>Canned Messages</h3>
+<button onclick="sendMsg('Running Late')">Running Late</button>
+<button onclick="sendMsg('Traffic Delay')">Traffic Delay</button>
+<button onclick="sendMsg('Mechanical Issue')">Mechanical Issue</button>
+<button onclick="sendMsg('Customer Declined Shoulder Strap')">
+Customer Declined Shoulder Strap</button>
 
-      <div class="panel">
-        <h3>MESSAGES FROM DISPATCH</h3>
-        <div id="driverMessages" class="msgBox"></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="systemBar" class="systemBar">
-    <span id="statusText">SYSTEMS OK</span>
-    <span id="clock"></span>
-  </div>
+<h3>Messages from Dispatch</h3>
+<div id="driverMsgs"></div>
 </div>
 
-<!-- DISPATCHER -->
-<div id="dispatcherPage" class="page">
-  <div class="topBar">
-    <strong>DISPATCHER</strong>
-    <button onclick="logout()">LOG OUT</button>
-  </div>
+<!-- DISPATCH -->
+<div id="dispatch" class="page">
+<h2>Dispatcher</h2>
+<button onclick="logout()">Logout</button>
 
-  <div class="content">
+<h3>Create Schedule (5 stops max)</h3>
+<input id="dDriver" placeholder="Driver (3675 or 3804)"><br>
 
-    <div class="panel">
-      <h3>Create Schedule</h3>
-      <select id="schDriver">
-        <option value="">Select Driver</option>
-        <option value="3675">3675</option>
-        <option value="3804">3804</option>
-      </select><br><br>
+<input id="s1" placeholder="Stop 1 time">
+<input id="s2" placeholder="Stop 2 time">
+<input id="s3" placeholder="Stop 3 time">
+<input id="s4" placeholder="Stop 4 time">
+<input id="s5" placeholder="Stop 5 time"><br>
 
-      <input id="schStop" placeholder="Stop name"><br><br>
-      <input id="schTime" placeholder="HH:MM"><br><br>
+<button onclick="assign()">Assign Schedule</button>
 
-      <button onclick="addStop()">Add Stop</button>
-      <button onclick="assignSchedule()">Assign Schedule</button>
-    </div>
+<h3>Send Message</h3>
+<input id="msgDriver" placeholder="Driver">
+<input id="msgText" placeholder="Message">
+<button onclick="sendDispatch()">Send</button>
 
-    <div class="panel">
-      <h3>Send Message to Driver</h3>
-      <select id="msgDriver">
-        <option value="3675">3675</option>
-        <option value="3804">3804</option>
-      </select><br><br>
-      <textarea id="msgText" rows="3"></textarea><br><br>
-      <button onclick="sendDispatchMessage()">SEND</button>
-    </div>
-
-    <div class="panel">
-      <h3>All Schedules</h3>
-      <pre id="scheduleDump"></pre>
-    </div>
-  </div>
+<h3>Driver Messages</h3>
+<div id="dispatchMsgs"></div>
 </div>
 
 <script>
-/* USERS */
 const users={
-  "3675":{password:"SR",role:"driver"},
-  "3804":{password:"ER",role:"driver"},
-  "dispatcher":{password:"admin",role:"dispatcher"}
+"3675":{p:"SR",r:"driver"},
+"3804":{p:"ER",r:"driver"},
+"dispatcher":{p:"admin",r:"dispatch"}
 };
 
-let currentUser=null;
-
-/* DATA STORES */
+let current=null;
 const schedules={};
-const messages={};
-let tempStops=[];
-let lastAdherence=null;
+const messages=[];
 
 /* LOGIN */
 function login(){
-  const u=username.value.trim();
-  const p=password.value.trim();
-  if(!users[u]||users[u].password!==p){alert("Invalid login");return;}
-  currentUser={name:u,role:users[u].role};
-  loginPage.style.display="none";
-  if(currentUser.role==="driver") driverPage.style.display="block";
-  if(currentUser.role==="dispatcher") dispatcherPage.style.display="block";
-  renderDriver();
-  renderDispatch();
-  renderDriverMessages();
+let u=user.value,p=pass.value;
+if(!users[u]||users[u].p!==p){alert("bad login");return;}
+current=u;
+document.querySelectorAll(".page").forEach(x=>x.style.display="none");
+if(users[u].r==="driver"){driver.style.display="block";loadDriver();}
+if(users[u].r==="dispatch"){dispatch.style.display="block";}
 }
+
+/* LOGOUT */
 function logout(){location.reload();}
 
-/* DISPATCH */
-function addStop(){
-  if(!schStop.value||!schTime.value)return;
-  tempStops.push({stop:schStop.value,time:schTime.value,arrived:false,alerted:false});
-  schStop.value="";schTime.value="";
-}
-function assignSchedule(){
-  if(!schDriver.value||tempStops.length===0)return;
-  schedules[schDriver.value]=JSON.parse(JSON.stringify(tempStops));
-  tempStops=[];
-  renderDispatch();
-}
-function renderDispatch(){
-  scheduleDump.textContent=JSON.stringify(schedules,null,2);
+/* ASSIGN SCHEDULE */
+function assign(){
+let d=dDriver.value;
+if(!d)return;
+
+let times=[s1.value,s2.value,s3.value,s4.value,s5.value].filter(x=>x);
+
+schedules[d]=times.map(t=>({time:t,arrived:false}));
+alert("Assigned!");
 }
 
-/* DRIVER */
-function renderDriver(){
-  if(currentUser?.role!=="driver")return;
-  const list=schedules[currentUser.name]||[];
-  driverTable.innerHTML="<tr><th>STOP</th><th>TIME</th><th>STATUS</th></tr>";
-  list.forEach((s,i)=>{
-    const r=driverTable.insertRow();
-    r.insertCell().innerText=s.stop;
-    r.insertCell().innerText=s.time;
-    const c=r.insertCell();
-    if(!s.arrived){
-      c.innerHTML=`<button class="arriveBtn" onclick="arrive(${i})">ARRIVED</button>`;
-    }else{
-      c.innerText=s.status;
-    }
-  });
+/* DRIVER VIEW */
+function loadDriver(){
+let list=schedules[current]||[];
+driverTable.innerHTML="<tr><th>Time</th><th>Status</th></tr>";
+list.forEach((s,i)=>{
+let r=driverTable.insertRow();
+r.insertCell().innerText=s.time;
+let c=r.insertCell();
+if(!s.arrived){
+c.innerHTML=`<button onclick="arrive(${i})">ARRIVED</button>`;
+}else{
+c.innerText="Done";
+}
+});
+renderDriverMsgs();
 }
 
 /* ARRIVE */
 function arrive(i){
-  const list=schedules[currentUser.name];
-  const s=list[i];
-  const [h,m]=s.time.split(":").map(Number);
-  const sched=new Date();sched.setHours(h,m,0,0);
-  const diff=Math.round((new Date()-sched)/60000);
-  s.arrived=true;
-  s.status=diff>=2?`LATE ${diff} MIN`:diff<=-2?`EARLY ${Math.abs(diff)} MIN`:"ON TIME";
-  lastAdherence=diff;
-
-  if(list.every(x=>x.arrived)) delete schedules[currentUser.name];
-
-  renderDriver();
-  updateSystemBar();
+schedules[current][i].arrived=true;
+if(schedules[current].every(x=>x.arrived)) delete schedules[current];
+loadDriver();
 }
 
-/* SYSTEM BAR */
-function updateSystemBar(){
-  systemBar.classList.remove("late","early");
-  if(lastAdherence>=2){
-    systemBar.classList.add("late");
-    statusText.innerText=`LATE ${lastAdherence} MIN`;
-  }else if(lastAdherence<=-2){
-    systemBar.classList.add("early");
-    statusText.innerText=`EARLY ${Math.abs(lastAdherence)} MIN`;
-  }else{
-    statusText.innerText="SYSTEMS OK";
-  }
+/* DRIVER MSG */
+function sendMsg(text){
+messages.push({from:current,text});
+renderDispatchMsgs();
 }
 
-/* DISPATCH MESSAGES */
-function sendDispatchMessage(){
-  const d=msgDriver.value;
-  if(!messages[d])messages[d]=[];
-  messages[d].push({
-    text:msgText.value,
-    time:new Date().toLocaleTimeString()
-  });
-  msgText.value="";
-  renderDriverMessages();
+/* DISPATCH SEND */
+function sendDispatch(){
+messages.push({to:msgDriver.value,text:msgText.value});
+renderDriverMsgs();
 }
 
-/* DRIVER MESSAGES */
-function renderDriverMessages(){
-  if(currentUser?.role!=="driver")return;
-  driverMessages.innerHTML="";
-  (messages[currentUser.name]||[]).forEach(m=>{
-    const d=document.createElement("div");
-    d.className="msg";
-    d.innerText=`[${m.time}] ${m.text}`;
-    driverMessages.prepend(d);
-  });
+/* RENDER */
+function renderDriverMsgs(){
+driverMsgs.innerHTML="";
+messages.filter(m=>m.to===current).forEach(m=>{
+driverMsgs.innerHTML+=m.text+"<br>";
+});
 }
 
-/* BEEP */
-function checkDepartureBeep(){
-  if(currentUser?.role!=="driver")return;
-  const next=(schedules[currentUser.name]||[]).find(s=>!s.arrived&&!s.alerted);
-  if(!next)return;
-  const [h,m]=next.time.split(":").map(Number);
-  const sched=new Date();sched.setHours(h,m,0,0);
-  if(new Date()>=sched){
-    next.alerted=true;
-    tripBeep.play().catch(()=>{});
-  }
+function renderDispatchMsgs(){
+dispatchMsgs.innerHTML="";
+messages.forEach(m=>{
+dispatchMsgs.innerHTML+=JSON.stringify(m)+"<br>";
+});
 }
-
-/* CLOCK */
-setInterval(()=>{
-  if(clock)clock.innerText=new Date().toLocaleTimeString([],{
-    hour:'2-digit',minute:'2-digit'
-  });
-  checkDepartureBeep();
-},1000);
 </script>
 
 </body>
 </html>
-
