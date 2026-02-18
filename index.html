@@ -11,10 +11,26 @@ button{padding:10px;margin:5px;background:#1e88e5;color:white;border:none}
 input{padding:8px;margin:5px}
 table{width:100%;border-collapse:collapse}
 td,th{border:1px solid #000;padding:6px;text-align:center}
+
+#systemBar{
+position:fixed;
+bottom:0;
+width:100%;
+background:#0f7a3c;
+color:white;
+padding:10px;
+font-weight:bold;
+}
+.late{background:#b91c1c}
+.early{background:#1e3a8a}
 </style>
 </head>
 
 <body>
+
+<audio id="beep">
+<source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=">
+</audio>
 
 <!-- LOGIN -->
 <div id="login" class="page" style="display:block">
@@ -48,15 +64,12 @@ Customer Declined Shoulder Strap</button>
 <h2>Dispatcher</h2>
 <button onclick="logout()">Logout</button>
 
-<h3>Create Schedule (5 stops max)</h3>
-<input id="dDriver" placeholder="Driver (3675 or 3804)"><br>
+<h3>Create Schedule</h3>
+<input id="dDriver" placeholder="Driver"><br>
 
-<input id="s1" placeholder="Stop 1 time">
-<input id="s2" placeholder="Stop 2 time">
-<input id="s3" placeholder="Stop 3 time">
-<input id="s4" placeholder="Stop 4 time">
-<input id="s5" placeholder="Stop 5 time"><br>
+<div id="timepoints"></div>
 
+<button onclick="addTimepoint()">Add Timepoint</button>
 <button onclick="assign()">Assign Schedule</button>
 
 <h3>Send Message</h3>
@@ -68,6 +81,9 @@ Customer Declined Shoulder Strap</button>
 <div id="dispatchMsgs"></div>
 </div>
 
+<!-- SYSTEM BAR -->
+<div id="systemBar">SYSTEMS OK</div>
+
 <script>
 const users={
 "3675":{p:"SR",r:"driver"},
@@ -76,8 +92,9 @@ const users={
 };
 
 let current=null;
-const schedules={};
-const messages=[];
+let schedules=JSON.parse(localStorage.getItem("schedules")||"{}");
+let messages=JSON.parse(localStorage.getItem("messages")||"{}");
+let lastAdherence=null;
 
 /* LOGIN */
 function login(){
@@ -92,67 +109,145 @@ if(users[u].r==="dispatch"){dispatch.style.display="block";}
 /* LOGOUT */
 function logout(){location.reload();}
 
-/* ASSIGN SCHEDULE */
+/* ADD TIMEPOINT */
+function addTimepoint(){
+let div=document.createElement("div");
+div.innerHTML=`
+<input placeholder="Stop Name">
+<input placeholder="HH:MM">
+`;
+timepoints.appendChild(div);
+}
+
+/* ASSIGN */
 function assign(){
 let d=dDriver.value;
-if(!d)return;
+let rows=document.querySelectorAll("#timepoints div");
 
-let times=[s1.value,s2.value,s3.value,s4.value,s5.value].filter(x=>x);
+let list=[];
+rows.forEach(r=>{
+let inputs=r.querySelectorAll("input");
+let name=inputs[0].value;
+let time=inputs[1].value;
+if(name && time){
+list.push({name,time,arrived:false,alerted:false});
+}
+});
 
-schedules[d]=times.map(t=>({time:t,arrived:false}));
+schedules[d]=list;
+
+localStorage.setItem("schedules",JSON.stringify(schedules));
 alert("Assigned!");
 }
 
-/* DRIVER VIEW */
+/* DRIVER */
 function loadDriver(){
 let list=schedules[current]||[];
-driverTable.innerHTML="<tr><th>Time</th><th>Status</th></tr>";
+driverTable.innerHTML="<tr><th>Stop</th><th>Time</th><th>Status</th></tr>";
+
 list.forEach((s,i)=>{
 let r=driverTable.insertRow();
+r.insertCell().innerText=s.name;
 r.insertCell().innerText=s.time;
+
 let c=r.insertCell();
 if(!s.arrived){
 c.innerHTML=`<button onclick="arrive(${i})">ARRIVED</button>`;
 }else{
-c.innerText="Done";
+c.innerText=s.status;
 }
 });
+
 renderDriverMsgs();
 }
 
 /* ARRIVE */
 function arrive(i){
-schedules[current][i].arrived=true;
+let s=schedules[current][i];
+
+let [h,m]=s.time.split(":").map(Number);
+let sched=new Date();sched.setHours(h,m,0,0);
+let diff=Math.round((new Date()-sched)/60000);
+
+s.arrived=true;
+s.status=diff>=2?`LATE ${diff} MIN`:diff<=-2?`EARLY ${Math.abs(diff)} MIN`:"ON TIME";
+lastAdherence=diff;
+
 if(schedules[current].every(x=>x.arrived)) delete schedules[current];
+
+localStorage.setItem("schedules",JSON.stringify(schedules));
+
 loadDriver();
+updateBar();
+}
+
+/* SYSTEM BAR */
+function updateBar(){
+systemBar.classList.remove("late","early");
+
+if(lastAdherence>=2){
+systemBar.classList.add("late");
+systemBar.innerText=`LATE ${lastAdherence} MIN`;
+}else if(lastAdherence<=-2){
+systemBar.classList.add("early");
+systemBar.innerText=`EARLY ${Math.abs(lastAdherence)} MIN`;
+}else{
+systemBar.innerText="SYSTEMS OK";
+}
+}
+
+/* BEEP */
+function checkBeep(){
+let next=(schedules[current]||[]).find(s=>!s.arrived&&!s.alerted);
+if(!next)return;
+
+let [h,m]=next.time.split(":").map(Number);
+let sched=new Date();sched.setHours(h,m,0,0);
+
+if(new Date()>=sched){
+next.alerted=true;
+document.getElementById("beep").play().catch(()=>{});
+}
 }
 
 /* DRIVER MSG */
 function sendMsg(text){
-messages.push({from:current,text});
+if(!messages["dispatch"])messages["dispatch"]=[];
+messages["dispatch"].push({from:current,text});
+localStorage.setItem("messages",JSON.stringify(messages));
 renderDispatchMsgs();
 }
 
-/* DISPATCH SEND */
+/* DISPATCH MSG */
 function sendDispatch(){
-messages.push({to:msgDriver.value,text:msgText.value});
+let d=msgDriver.value;
+if(!messages[d])messages[d]=[];
+messages[d].push({text:msgText.value});
+localStorage.setItem("messages",JSON.stringify(messages));
 renderDriverMsgs();
 }
 
 /* RENDER */
 function renderDriverMsgs(){
 driverMsgs.innerHTML="";
-messages.filter(m=>m.to===current).forEach(m=>{
+(messages[current]||[]).forEach(m=>{
 driverMsgs.innerHTML+=m.text+"<br>";
 });
 }
 
 function renderDispatchMsgs(){
 dispatchMsgs.innerHTML="";
-messages.forEach(m=>{
-dispatchMsgs.innerHTML+=JSON.stringify(m)+"<br>";
+(messages["dispatch"]||[]).forEach(m=>{
+dispatchMsgs.innerHTML+=m.from+": "+m.text+"<br>";
 });
 }
+
+/* CLOCK */
+setInterval(()=>{
+if(current && users[current].r==="driver"){
+checkBeep();
+}
+},1000);
 </script>
 
 </body>
