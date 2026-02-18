@@ -21,8 +21,8 @@ color:white;
 padding:10px;
 font-weight:bold;
 }
-.late{background:#b91c1c}
-.early{background:#1e3a8a}
+.late{background:#1e3a8a}   /* BLUE */
+.early{background:#b91c1c}  /* RED */
 </style>
 </head>
 
@@ -103,7 +103,7 @@ if(!users[u]||users[u].p!==p){alert("bad login");return;}
 current=u;
 document.querySelectorAll(".page").forEach(x=>x.style.display="none");
 if(users[u].r==="driver"){driver.style.display="block";loadDriver();}
-if(users[u].r==="dispatch"){dispatch.style.display="block";}
+if(users[u].r==="dispatch"){dispatch.style.display="block";renderDispatchMsgs();}
 }
 
 /* LOGOUT */
@@ -112,10 +112,8 @@ function logout(){location.reload();}
 /* ADD TIMEPOINT */
 function addTimepoint(){
 let div=document.createElement("div");
-div.innerHTML=`
-<input placeholder="Stop Name">
-<input placeholder="HH:MM">
-`;
+div.innerHTML=`<input placeholder="Stop Name">
+<input placeholder="HH:MM">`;
 timepoints.appendChild(div);
 }
 
@@ -135,12 +133,11 @@ list.push({name,time,arrived:false,alerted:false});
 });
 
 schedules[d]=list;
-
 localStorage.setItem("schedules",JSON.stringify(schedules));
 alert("Assigned!");
 }
 
-/* DRIVER */
+/* DRIVER LOAD */
 function loadDriver(){
 let list=schedules[current]||[];
 driverTable.innerHTML="<tr><th>Stop</th><th>Time</th><th>Status</th></tr>";
@@ -181,15 +178,15 @@ loadDriver();
 updateBar();
 }
 
-/* SYSTEM BAR */
+/* SYSTEM BAR COLORS */
 function updateBar(){
 systemBar.classList.remove("late","early");
 
 if(lastAdherence>=2){
-systemBar.classList.add("late");
+systemBar.classList.add("late");  // BLUE
 systemBar.innerText=`LATE ${lastAdherence} MIN`;
 }else if(lastAdherence<=-2){
-systemBar.classList.add("early");
+systemBar.classList.add("early"); // RED
 systemBar.innerText=`EARLY ${Math.abs(lastAdherence)} MIN`;
 }else{
 systemBar.innerText="SYSTEMS OK";
@@ -210,7 +207,7 @@ document.getElementById("beep").play().catch(()=>{});
 }
 }
 
-/* DRIVER MSG */
+/* DRIVER → DISPATCH */
 function sendMsg(text){
 if(!messages["dispatch"])messages["dispatch"]=[];
 messages["dispatch"].push({from:current,text});
@@ -218,7 +215,7 @@ localStorage.setItem("messages",JSON.stringify(messages));
 renderDispatchMsgs();
 }
 
-/* DISPATCH MSG */
+/* DISPATCH → DRIVER */
 function sendDispatch(){
 let d=msgDriver.value;
 if(!messages[d])messages[d]=[];
@@ -227,7 +224,7 @@ localStorage.setItem("messages",JSON.stringify(messages));
 renderDriverMsgs();
 }
 
-/* RENDER */
+/* RENDER DRIVER MSGS */
 function renderDriverMsgs(){
 driverMsgs.innerHTML="";
 (messages[current]||[]).forEach(m=>{
@@ -235,6 +232,7 @@ driverMsgs.innerHTML+=m.text+"<br>";
 });
 }
 
+/* RENDER DISPATCH MSGS */
 function renderDispatchMsgs(){
 dispatchMsgs.innerHTML="";
 (messages["dispatch"]||[]).forEach(m=>{
@@ -252,3 +250,6 @@ checkBeep();
 
 </body>
 </html>
+
+
+
