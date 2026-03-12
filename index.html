@@ -7,32 +7,47 @@
 <style>
 body{font-family:Arial;margin:0;background:#9fd3ff}
 .page{display:none;padding:20px}
-button{padding:10px;margin:5px;background:#1e88e5;color:white;border:none}
-input{padding:8px;margin:5px}
-table{width:100%;border-collapse:collapse}
-td,th{border:1px solid #000;padding:6px;text-align:center}
 
+button{
+padding:10px;
+margin:5px;
+background:#1e88e5;
+color:white;
+border:none;
+cursor:pointer
+}
+
+input{padding:8px;margin:5px}
+
+table{
+width:100%;
+border-collapse:collapse
+}
+
+td,th{
+border:1px solid black;
+padding:6px;
+text-align:center
+}
+
+/* SYSTEM BAR */
 #systemBar{
 position:fixed;
 bottom:0;
 width:100%;
 background:#0f7a3c;
 color:white;
-padding:10px;
-font-weight:bold;
+padding:12px;
+font-weight:bold
 }
-.late{background:#1e3a8a}   /* BLUE */
-.early{background:#b91c1c}  /* RED */
+
+.late{background:#1e3a8a}
+.early{background:#b91c1c}
 </style>
 </head>
 
 <body>
 
-<audio id="beep">
-<source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=">
-</audio>
-
-<!-- LOGIN -->
 <div id="login" class="page" style="display:block">
 <h2>Login</h2>
 <input id="user" placeholder="Username"><br>
@@ -49,10 +64,10 @@ font-weight:bold;
 <table id="driverTable"></table>
 
 <h3>Canned Messages</h3>
-<button onclick="sendMsg('Running Late')">Running Late</button>
-<button onclick="sendMsg('Traffic Delay')">Traffic Delay</button>
-<button onclick="sendMsg('Mechanical Issue')">Mechanical Issue</button>
-<button onclick="sendMsg('Customer Declined Shoulder Strap')">
+<button onclick="sendDriverMsg('Running Late')">Running Late</button>
+<button onclick="sendDriverMsg('Traffic Delay')">Traffic Delay</button>
+<button onclick="sendDriverMsg('Mechanical Issue')">Mechanical Issue</button>
+<button onclick="sendDriverMsg('Customer Declined Shoulder Strap')">
 Customer Declined Shoulder Strap</button>
 
 <h3>Messages from Dispatch</h3>
@@ -69,187 +84,241 @@ Customer Declined Shoulder Strap</button>
 
 <div id="timepoints"></div>
 
-<button onclick="addTimepoint()">Add Timepoint</button>
+<button onclick="addStop()">Add Timepoint</button>
 <button onclick="assign()">Assign Schedule</button>
 
 <h3>Send Message</h3>
 <input id="msgDriver" placeholder="Driver">
 <input id="msgText" placeholder="Message">
-<button onclick="sendDispatch()">Send</button>
+<button onclick="sendDispatchMsg()">Send</button>
 
 <h3>Driver Messages</h3>
 <div id="dispatchMsgs"></div>
 </div>
 
-<!-- SYSTEM BAR -->
 <div id="systemBar">SYSTEMS OK</div>
 
 <script>
+
 const users={
 "3675":{p:"SR",r:"driver"},
 "3804":{p:"ER",r:"driver"},
 "dispatcher":{p:"admin",r:"dispatch"}
-};
+}
 
-let current=null;
-let schedules=JSON.parse(localStorage.getItem("schedules")||"{}");
-let messages=JSON.parse(localStorage.getItem("messages")||"{}");
-let lastAdherence=null;
+let current=null
+
+let schedules=JSON.parse(localStorage.getItem("schedules")||"{}")
+let messages=JSON.parse(localStorage.getItem("messages")||"{}")
 
 /* LOGIN */
 function login(){
-let u=user.value,p=pass.value;
-if(!users[u]||users[u].p!==p){alert("bad login");return;}
-current=u;
-document.querySelectorAll(".page").forEach(x=>x.style.display="none");
-if(users[u].r==="driver"){driver.style.display="block";loadDriver();}
-if(users[u].r==="dispatch"){dispatch.style.display="block";renderDispatchMsgs();}
+
+let u=user.value
+let p=pass.value
+
+if(!users[u]||users[u].p!==p){
+alert("bad login")
+return
+}
+
+current=u
+
+document.querySelectorAll(".page").forEach(p=>p.style.display="none")
+
+if(users[u].r==="driver"){
+driver.style.display="block"
+loadDriver()
+}
+
+if(users[u].r==="dispatch"){
+dispatch.style.display="block"
+renderDispatchMsgs()
+}
+
 }
 
 /* LOGOUT */
-function logout(){location.reload();}
+function logout(){
+location.reload()
+}
 
-/* ADD TIMEPOINT */
-function addTimepoint(){
-let div=document.createElement("div");
-div.innerHTML=`<input placeholder="Stop Name">
-<input placeholder="HH:MM">`;
-timepoints.appendChild(div);
+/* ADD STOP */
+function addStop(){
+
+let div=document.createElement("div")
+
+div.innerHTML=`
+<input placeholder="Stop Name">
+<input placeholder="HH:MM">
+`
+
+timepoints.appendChild(div)
+
 }
 
 /* ASSIGN */
 function assign(){
-let d=dDriver.value;
-let rows=document.querySelectorAll("#timepoints div");
 
-let list=[];
+let d=dDriver.value
+
+let rows=document.querySelectorAll("#timepoints div")
+
+let list=[]
+
 rows.forEach(r=>{
-let inputs=r.querySelectorAll("input");
-let name=inputs[0].value;
-let time=inputs[1].value;
+let inputs=r.querySelectorAll("input")
+
+let name=inputs[0].value
+let time=inputs[1].value
+
 if(name && time){
-list.push({name,time,arrived:false,alerted:false});
+list.push({
+name,
+time,
+arrived:false
+})
 }
-});
+})
 
-schedules[d]=list;
-localStorage.setItem("schedules",JSON.stringify(schedules));
-alert("Assigned!");
+schedules[d]=list
+
+localStorage.setItem("schedules",JSON.stringify(schedules))
+
+alert("Schedule Assigned")
+
 }
 
-/* DRIVER LOAD */
+/* DRIVER VIEW */
 function loadDriver(){
-let list=schedules[current]||[];
-driverTable.innerHTML="<tr><th>Stop</th><th>Time</th><th>Status</th></tr>";
+
+let list=schedules[current]||[]
+
+driverTable.innerHTML="<tr><th>Stop</th><th>Time</th><th>Status</th></tr>"
 
 list.forEach((s,i)=>{
-let r=driverTable.insertRow();
-r.insertCell().innerText=s.name;
-r.insertCell().innerText=s.time;
 
-let c=r.insertCell();
+let row=driverTable.insertRow()
+
+row.insertCell().innerText=s.name
+row.insertCell().innerText=s.time
+
+let c=row.insertCell()
+
 if(!s.arrived){
-c.innerHTML=`<button onclick="arrive(${i})">ARRIVED</button>`;
+c.innerHTML=`<button onclick="arrive(${i})">ARRIVED</button>`
 }else{
-c.innerText=s.status;
+c.innerText=s.status
 }
-});
 
-renderDriverMsgs();
+})
+
+renderDriverMsgs()
+
 }
 
 /* ARRIVE */
 function arrive(i){
-let s=schedules[current][i];
 
-let [h,m]=s.time.split(":").map(Number);
-let sched=new Date();sched.setHours(h,m,0,0);
-let diff=Math.round((new Date()-sched)/60000);
+let s=schedules[current][i]
 
-s.arrived=true;
-s.status=diff>=2?`LATE ${diff} MIN`:diff<=-2?`EARLY ${Math.abs(diff)} MIN`:"ON TIME";
-lastAdherence=diff;
+let [h,m]=s.time.split(":").map(Number)
 
-if(schedules[current].every(x=>x.arrived)) delete schedules[current];
+let sched=new Date()
+sched.setHours(h,m,0,0)
 
-localStorage.setItem("schedules",JSON.stringify(schedules));
+let diff=Math.round((new Date()-sched)/60000)
 
-loadDriver();
-updateBar();
+s.arrived=true
+
+if(diff>=2){
+s.status="LATE "+diff+" MIN"
+systemBar.className="late"
+systemBar.innerText=s.status
 }
 
-/* SYSTEM BAR COLORS */
-function updateBar(){
-systemBar.classList.remove("late","early");
-
-if(lastAdherence>=2){
-systemBar.classList.add("late");  // BLUE
-systemBar.innerText=`LATE ${lastAdherence} MIN`;
-}else if(lastAdherence<=-2){
-systemBar.classList.add("early"); // RED
-systemBar.innerText=`EARLY ${Math.abs(lastAdherence)} MIN`;
-}else{
-systemBar.innerText="SYSTEMS OK";
-}
+else if(diff<=-2){
+s.status="EARLY "+Math.abs(diff)+" MIN"
+systemBar.className="early"
+systemBar.innerText=s.status
 }
 
-/* BEEP */
-function checkBeep(){
-let next=(schedules[current]||[]).find(s=>!s.arrived&&!s.alerted);
-if(!next)return;
-
-let [h,m]=next.time.split(":").map(Number);
-let sched=new Date();sched.setHours(h,m,0,0);
-
-if(new Date()>=sched){
-next.alerted=true;
-document.getElementById("beep").play().catch(()=>{});
+else{
+s.status="ON TIME"
+systemBar.className=""
+systemBar.innerText="SYSTEMS OK"
 }
+
+if(schedules[current].every(x=>x.arrived)){
+delete schedules[current]
+}
+
+localStorage.setItem("schedules",JSON.stringify(schedules))
+
+loadDriver()
+
 }
 
 /* DRIVER → DISPATCH */
-function sendMsg(text){
-if(!messages["dispatch"])messages["dispatch"]=[];
-messages["dispatch"].push({from:current,text});
-localStorage.setItem("messages",JSON.stringify(messages));
-renderDispatchMsgs();
+function sendDriverMsg(text){
+
+if(!messages.dispatch)messages.dispatch=[]
+
+messages.dispatch.push({
+from:current,
+text
+})
+
+localStorage.setItem("messages",JSON.stringify(messages))
+
+alert("Message Sent")
+
+renderDispatchMsgs()
+
 }
 
 /* DISPATCH → DRIVER */
-function sendDispatch(){
-let d=msgDriver.value;
-if(!messages[d])messages[d]=[];
-messages[d].push({text:msgText.value});
-localStorage.setItem("messages",JSON.stringify(messages));
-renderDriverMsgs();
+function sendDispatchMsg(){
+
+let d=msgDriver.value
+
+if(!messages[d])messages[d]=[]
+
+messages[d].push({
+text:msgText.value
+})
+
+localStorage.setItem("messages",JSON.stringify(messages))
+
+renderDriverMsgs()
+
 }
 
-/* RENDER DRIVER MSGS */
+/* DRIVER MSG VIEW */
 function renderDriverMsgs(){
-driverMsgs.innerHTML="";
+
+driverMsgs.innerHTML=""
+
 (messages[current]||[]).forEach(m=>{
-driverMsgs.innerHTML+=m.text+"<br>";
-});
+driverMsgs.innerHTML+=m.text+"<br>"
+})
+
 }
 
-/* RENDER DISPATCH MSGS */
+/* DISPATCH MSG VIEW */
 function renderDispatchMsgs(){
-dispatchMsgs.innerHTML="";
-(messages["dispatch"]||[]).forEach(m=>{
-dispatchMsgs.innerHTML+=m.from+": "+m.text+"<br>";
-});
+
+dispatchMsgs.innerHTML=""
+
+(messages.dispatch||[]).forEach(m=>{
+dispatchMsgs.innerHTML+=m.from+": "+m.text+"<br>"
+})
+
 }
 
-/* CLOCK */
-setInterval(()=>{
-if(current && users[current].r==="driver"){
-checkBeep();
-}
-},1000);
 </script>
 
 </body>
 </html>
-
 
 
